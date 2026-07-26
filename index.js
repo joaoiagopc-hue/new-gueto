@@ -4,10 +4,10 @@ const path = require('path');
 const express = require('express');
 require('dotenv').config();
 
-// 1. SERVIDOR WEB (Para o UptimeRobot manter o bot do Gueto RP 24h online no Render)
+// 1. SERVIDOR WEB (Para manter online)
 const app = express();
-app.get('/', (req, res) => res.send('🚀 Novo Bot do Gueto RP está online e operando no Brookhaven!'));
-app.listen(3000, () => console.log('📡 Servidor Web do Gueto RP iniciado.'));
+app.get('/', (req, res) => res.send('🚀 Bot do Gueto RP Azul Online!'));
+app.listen(3000, () => console.log('📡 Servidor Web ativo.'));
 
 // 2. INICIALIZAÇÃO DO BOT
 const client = new Client({
@@ -19,76 +19,59 @@ const client = new Client({
     ]
 });
 
-client.commands = new Collection();
-
-// 3. EVENTO: BOT ONLINE E RESET DO CACHE DE BARRAS
 client.once('ready', async () => {
-    console.log(`🔥 ${client.user.tag} está pronto para o Gueto RP (Edição Azul)!`);
-    
+    console.log(`🔥 ${client.user.tag} está pronto para o Gueto RP Azul!`);
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
-        console.log('🔄 Limpando totalmente registros antigos de comandos de barra...');
-        
-        // Zera o cache global e do servidor para o chat rodar apenas por prefixo texto (!)
         await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: [] });
-        
-        // ATENÇÃO: Se quiser limpar instantaneamente o cache da guilda, coloque o ID do seu servidor abaixo
-        // await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '1503073223477035260'), { body: [] });
-        
-        console.log('🎉 Comandos de barra limpos! Rodando exclusivamente por prefixo (!).');
+        console.log('🎉 Cache de comandos de barra limpo com sucesso.');
     } catch (error) {
-        console.error('❌ Erro ao limpar comandos:', error);
+        console.error(error);
     }
 });
 
-// 4. EVENTO: GERENCIADOR DE BOTÕES, MODALS E MENUS INTERNOS
+// 3. GERENCIADOR DE BOTÕES E INTERAÇÕES
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton() && !interaction.isModalSubmit() && !interaction.isStringSelectMenu()) return;
-
     try {
-        // ID Automático
         if (interaction.customId.includes('id') || interaction.customId.includes('solicitar')) {
-            const idBotoes = require('./commands/admin/passaporte_botoes.js');
-            await idBotoes.handleInteraction(interaction);
+            await require('./commands/admin/passaporte_botoes.js').handleInteraction(interaction);
         }
-        // Whitelist por chat
-        if (interaction.customId.includes('wl') || interaction.customId.includes('whitelist')) {
-            const wlBotoes = require('./commands/admin/wl_botoes.js');
-            await wlBotoes.handleInteraction(interaction);
+        if (interaction.customId.includes('wl') || interaction.customId.includes('whitelist') || interaction.customId.startsWith('aprovar_wl_') || interaction.customId.startsWith('reprovar_wl_')) {
+            await require('./commands/admin/wl_botoes.js').handleInteraction(interaction);
         }
-        // Central de Tickets/Suporte
         if (interaction.customId.includes('ticket') || interaction.customId.includes('fechamento') || interaction.customId.includes('motivo')) {
-            const ticketBotoes = require('./commands/admin/ticket_botoes.js');
-            await ticketBotoes.handleInteraction(interaction);
+            await require('./commands/admin/ticket_botoes.js').handleInteraction(interaction);
         }
     } catch (error) {
-        console.error('Erro na interação de botão/modal:', error);
+        console.error('Erro no botão:', error);
     }
 });
 
-// 5. EVENTO: GERENCIADOR COMPACTO DE COMANDOS TRADICIONAIS POR PREFIXO (!)
+// 4. LEITOR DE PREFIXO COM CAPTURA CORRIGIDA E DIRETA
 client.on('messageCreate', async message => {
     if (message.author.bot || !message.content.startsWith('!')) return;
 
     const args = message.content.slice(1).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
-    // Mapeamento dos arquivos de prefixo diretos
     let scriptPath = '';
-    if (commandName === 'painel-policia') scriptPath = './commands/rp/policia.js';
     if (commandName === 'painel-id') scriptPath = './commands/rp/passaporte.js';
     if (commandName === 'painel-wl') scriptPath = './commands/rp/wl.js';
     if (commandName === 'painel-ticket') scriptPath = './commands/rp/ticket.js';
+    if (commandName === 'painel-policia') scriptPath = './commands/rp/policia.js';
 
     if (scriptPath) {
         try {
+            // Remove o cache para sempre ler a versão mais recente do arquivo
+            delete require.cache[require.resolve(scriptPath)];
             const comando = require(scriptPath);
             if (comando && comando.executePrefix) {
                 await comando.executePrefix(message);
             }
         } catch (error) {
-            console.error(`Erro ao carregar !${commandName}:`, error);
-            message.reply('❌ Erro interno ao processar este painel.');
+            console.error(`Erro ao rodar !${commandName}:`, error);
+            message.reply('❌ Ocorreu um erro interno ao carregar a lógica deste painel.');
         }
     }
 });
