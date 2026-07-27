@@ -5,9 +5,9 @@ const path = require('path');
 const idFilePath = path.join(__dirname, '../../proximo_id.txt');
 
 function gerarProximoID() {
-    // 🚨 CONFIGURAÇÃO DE SEGURANÇA: Define o ID inicial da cidade como 20
+    // 🚨 CONFIGURAÇÃO DE SEGURANÇA: Define o ID inicial da cidade como 22
     if (!fs.existsSync(idFilePath)) {
-        fs.writeFileSync(idFilePath, '20');
+        fs.writeFileSync(idFilePath, '22');
     }
     const idAtual = parseInt(fs.readFileSync(idFilePath, 'utf8'), 10);
     const proximoId = idAtual + 1;
