@@ -42,7 +42,7 @@ client.once('ready', async () => {
         // 🚨 CONFIGURAÇÃO DE INJEÇÃO DIRETA POR SERVIDOR
         // ATENÇÃO: Substitua os números abaixo pelo ID real do seu servidor do Gueto RP!
         await rest.put(
-            Routes.applicationGuildCommands(process.env.CLIENT_ID, '123456789012345678'), 
+            Routes.applicationGuildCommands(process.env.CLIENT_ID, '1531002237705392291'), 
             { body: commandsArray }
         );
         
