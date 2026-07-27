@@ -2,12 +2,13 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 module.exports = {
     async handleInteraction(interaction, client) {
+        // CONFIGURAÇÕES DA WHITELIST DO GUETO RP (Coloque seus IDs reais aqui)
         const CONFIG = {
             CANAL_STAFF_ID: '1506593481513111563', 
             CARGO_COM_REGISTRO: '1527698641412817056',   
             CARGO_COM_ID: '1529945344241176738',               
             CARGO_SEM_REGISTRO: '1515730336313512076',   
-            CARGO_STAFF_MARCACAO_ID: '1515730228528418956' 
+            CARGO_STAFF_MARCACAO_ID: '1515730228528418956'
         };
 
         const questionario = [
@@ -18,16 +19,29 @@ module.exports = {
             { pergunta: "5️⃣ Qual o comportamento correto durante uma abordagem policial?", opcoes: ["A) Render-se imediatamente, levantar as mãos e colaborar com as ordens dos policiais.", "B) Sacar uma arma e atirar mesmo estando cercado por três viaturas.", "C) Atropelar o policial e fugir rindo para o hospital.", "D) Deslogar do servidor para nascer na sua casa salvo."], correta: "A" }
         ];
 
+        // Inicializa as listas de controle na memória do bot caso não existam
         if (!client.wlSessions) client.wlSessions = new Map();
+        if (!client.wlCompletadas) client.wlCompletadas = new Set();
 
+        // 1. CLICOU NO BOTÃO "FAZER WHITELIST" DO PAINEL PÚBLICO
         if (interaction.customId === 'iniciar_wl_botao') {
+            // 🚨 NOVA TRAVA: Verifica se o ID do cidadão já está na lista de exames enviados à Staff
+            if (client.wlCompletadas.has(interaction.user.id)) {
+                return interaction.reply({ 
+                    content: '⚠️ **Bloqueado:** Você já realizou o seu exame de Whitelist e suas respostas já foram enviadas para avaliação da Staff! Aguarde o resultado pacientemente em seus cargos ou na sua DM.', 
+                    ephemeral: true 
+                });
+            }
+
             if (client.wlSessions.has(interaction.user.id)) {
                 return interaction.reply({ content: '⚠️ Você já iniciou sua prova! Continue respondendo nas mensagens secretas abaixo.', ephemeral: true });
             }
+
             client.wlSessions.set(interaction.user.id, { etapa: 0, acertos: 0, historico: [] });
             return enviarEtapaWl(interaction, interaction.user.id, questionario, client);
         }
 
+        // 2. CLICOU EM UMA DAS ALTERNATIVAS (A, B, C ou D)
         if (interaction.customId.startsWith('wl_resp_')) {
             const sessao = client.wlSessions.get(interaction.user.id);
             if (!sessao) return interaction.reply({ content: '❌ Sessão expirada. Clique em "Fazer Whitelist" novamente no painel.', ephemeral: true });
@@ -49,8 +63,11 @@ module.exports = {
                 const totalQuestoes = questionario.length;
                 const passou = sessao.acertos === totalQuestoes;
 
+                // 🚨 CARIMBA O ID DO JOGADOR NA LISTA DE TESTES COMPLETADOS E ENVIADOS
+                client.wlCompletadas.add(interaction.user.id);
+
                 if (passou) {
-                    await interaction.editReply({ content: `🎉 **PARABÉNS! Você acertou ${sessao.acertos}/${totalQuestoes} questões e foi aprovado no Gueto RP!**\nSeus cargos foram liberados com sucesso.`, embeds: [], components: [] });
+                    await interaction.editReply({ content: `🎉 **PARABÉNS! Você acertou ${sessao.acertos}/${totalQuestoes} questões e foi aprovado no Gueto RP!**\nSeus cargos foram liberados com sucesso e sua entrada na cidade está autorizada!`, embeds: [], components: [] });
                     const m = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
                     if (m) {
                         try { if (CONFIG.CARGO_COM_REGISTRO !== '123456789012345678') await m.roles.add(CONFIG.CARGO_COM_REGISTRO); } catch(e){}
@@ -58,14 +75,14 @@ module.exports = {
                         try { if (CONFIG.CARGO_SEM_REGISTRO !== '123456789012345678') await m.roles.remove(CONFIG.CARGO_SEM_REGISTRO); } catch(e){}
                     }
                 } else {
-                    await interaction.editReply({ content: `❌ **Você errou alguma questão técnica de Roleplay e foi reprovado.**\nEstude melhor os conceitos de RP e tente novamente no painel público!`, embeds: [], components: [] });
+                    await interaction.editReply({ content: `❌ **O seu questionário foi concluído, porém você errou alguma questão técnica de Roleplay e foi reprovado nesta tentativa.**\nEstude melhor os conceitos do servidor. Suas respostas foram arquivadas pela administração para fins de registro!`, embeds: [], components: [] });
                 }
 
                 const canalStaff = interaction.guild.channels.cache.get(CONFIG.CANAL_STAFF_ID);
                 if (canalStaff && CONFIG.CANAL_STAFF_ID !== '123456789012345678') {
                     const embedStaffLog = new EmbedBuilder()
-                        .setTitle(passou ? '🟩 WHITELIST APROVADA' : '🟥 WHITELIST REPROVADA')
-                        .setDescription(`👤 **Candidato:** ${interaction.user}\n📊 **Pontuação:** \`${sessao.acertos} / ${totalQuestoes}\``)
+                        .setTitle(passou ? '🟩 WHITELIST APROVADA (100% DE ACERTOS)' : '🟥 WHITELIST REPROVADA')
+                        .setDescription(`👤 **Candidato:** ${interaction.user} (\`${interaction.user.id}\`)\n📊 **Pontuação:** \`${sessao.acertos} / ${totalQuestoes}\``)
                         .setColor(passou ? '#00ff00' : '#ff0000')
                         .setTimestamp();
                     sessao.historico.forEach(h => {
@@ -83,7 +100,7 @@ async function enviarEtapaWl(interaction, userId, questionario, client) {
     const sessao = client.wlSessions.get(userId);
     const questao = questionario[sessao.etapa];
     const embedPergunta = new EmbedBuilder()
-        .setTitle('📝 EXAME DE WHITELIST')
+        .setTitle(`📝 EXAME DE WHITELIST — QUESTÃO ${sessao.etapa + 1} DE ${questionario.length}`)
         .setDescription(`**${questao.pergunta}**\n\n${questao.opcoes.join('\n')}\n\n⚠️ *Escolha a alternativa correta abaixo:*`)
         .setColor('#0000ff');
 
