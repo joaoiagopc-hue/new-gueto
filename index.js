@@ -20,9 +20,10 @@ const client = new Client({
 client.commands = new Collection();
 const commandsArray = [];
 
+// LEITOR DIRETO DA PASTA DE RP (Mapeia wl.js, ticket.js e passaporte.js)
 const pastaRp = path.join(__dirname, 'commands/rp');
 if (fs.existsSync(pastaRp)) {
-    const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js' && f !== 'recuperar.js');
+    const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js' && f !== 'recuperar.js' && f !== 'armadilha.js' && f !== 'faxina.js');
     for (const file of arquivosRp) {
         try {
             const filePath = path.join(pastaRp, file);
@@ -39,16 +40,24 @@ client.once('ready', async () => {
     console.log(`🔥 ${client.user.tag} pronto para o Gueto RP Azul!`);
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
+        // Registra apenas os comandos de barra oficiais limpos de forma limpa na guilda
         await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '1531002237705392291'), { body: commandsArray });
         console.log('🎉 Comandos registrados com sucesso!');
     } catch (error) { console.error(error); }
 });
 
 // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🚨 LEITOR DE COMANDOS POR TEXTO (POLÍCIA E DOCUMENTO)
+// 🚨 LEITOR DE MENSAGENS COM ESCUDO ANTI-RAID & PREFIXOS DE RP
 // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
+
+    // 🛡️ GATILHO DA ARMADILHA ANTI-RAID (Sempre roda primeiro por segurança)
+    try {
+        const scriptArmadilha = './commands/rp/armadilha.js';
+        delete require.cache[require.resolve(scriptArmadilha)];
+        await require(scriptArmadilha).executeArmadilha(message);
+    } catch (e) { console.error('Erro no Escudo Anti-Raid:', e); }
 
     const textoMensagem = message.content.trim();
 
@@ -62,14 +71,22 @@ client.on('messageCreate', async message => {
         return;
     }
 
-    // 2. COMANDO DE SISTEMA RP: !doc
+    // 2. NOVO COMANDO POR PREFIXO SEGURO: !painel-armadilha
+    if (textoMensagem === '!painel-armadilha') {
+        const scriptArmadilha = './commands/rp/armadilha.js';
+        try {
+            delete require.cache[require.resolve(scriptArmadilha)];
+            await require(scriptArmadilha).executePrefixPainel(message);
+        } catch (e) { console.error(e); }
+        return;
+    }
+
+    // 3. COMANDO DE SISTEMA RP: !doc
     if (textoMensagem === '!doc') {
         try {
             await message.delete().catch(() => null);
-
             const apelidoAtual = message.member.displayName;
             const fotoUsuario = message.author.displayAvatarURL({ dynamic: true, size: 256 });
-
             let idExtraido = 'Não emitido';
             let nomeExtraido = apelidoAtual;
 
@@ -93,7 +110,7 @@ client.on('messageCreate', async message => {
                 .setThumbnail(fotoUsuario)
                 .setColor('#0000ff') 
                 .addFields([
-                    { name: '👤 CIDADÃO', value: `\`\`\`md\n> ${nomeExtraido}\n\`\`\``, inline: true },
+                    { name: '👤 CIDADÃO', value: `\`\`\`fix\n${nomeExtraido}\n\`\`\``, inline: true },
                     { name: '🔢 REGISTRO (ID)', value: `\`\`\`fix\n#${idExtraido}\n\`\`\``, inline: true },
                     { name: '🟢 PROCEDÊNCIA', value: `\`\`\`yaml\nCidadão Verificado / Whitelist Aprovada\n\`\`\``, inline: false }
                 ])
@@ -101,19 +118,20 @@ client.on('messageCreate', async message => {
                 .setTimestamp();
 
             await message.channel.send({ embeds: [embedDocumento] });
-
-        } catch (erroDoc) {
-            console.error('Erro ao processar o comando !doc:', erroDoc);
-        }
+        } catch (erroDoc) { console.error(erroDoc); }
         return;
     }
 });
 
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+// 🎯 DISTRIBUIDOR DE INTERAÇÕES (SLASH COMMANDS, BOTÕES E MODALS)
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = client.commands.get(interaction.commandName);
         if (!command) return;
         try { await command.execute(interaction); } catch (e) { console.error(e); }
+        return;
     }
 
     if (interaction.isButton() || interaction.isModalSubmit() || interaction.isStringSelectMenu()) {
