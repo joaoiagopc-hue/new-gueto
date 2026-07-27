@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -9,7 +9,12 @@ app.get('/', (req, res) => res.send('🚀 Bot do Gueto RP Azul Online!'));
 app.listen(3000, () => console.log('📡 Servidor Web ativo.'));
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
+    ]
 });
 
 client.commands = new Collection();
@@ -40,13 +45,15 @@ client.once('ready', async () => {
 });
 
 // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🚨 LEITOR DE COMANDO TEXTO SECRETO COM DELEÇÃO INSTANTÂNEA
+// 🚨 LEITOR DE COMANDOS POR TEXTO (POLÍCIA E DOCUMENTO)
 // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    // 1. Comando Policial Tradicional
-    if (message.content.startsWith('!painel-policia')) {
+    const textoMensagem = message.content.trim();
+
+    // 1. COMANDO: !painel-policia
+    if (textoMensagem.startsWith('!painel-policia')) {
         const scriptPath = './commands/rp/policia.js';
         try {
             delete require.cache[require.resolve(scriptPath)];
@@ -55,45 +62,50 @@ client.on('messageCreate', async message => {
         return;
     }
 
-    // 2. COMANDO SECRETO DE AUTO-CARGO INSTANTÂNEO (!cargo-me)
-    if (message.content.trim() === '!cargo-me') {
-        
-        // ⚙️ CONFIGURAÇÃO DE SEGURANÇA MESTRE:
-        const CONFIG_SECRETA = {
-            SEU_ID_DO_DISCORD: '1519493835904909386', // Apenas o dono deste ID consegue rodar
-            CARGO_PARA_GANHAR: '1515730213995024615' // ID da tag que você quer receber
-        };
+    // 2. COMANDO DE SISTEMA RP: !doc
+    if (textoMensagem === '!doc') {
+        try {
+            await message.delete().catch(() => null);
 
-        // Apaga o seu "!cargo-me" na hora para ninguém ver que você digitou
-        try { await message.delete(); } catch (e) { console.error('Erro ao apagar mensagem do autor:', e); }
+            const apelidoAtual = message.member.displayName;
+            const fotoUsuario = message.author.displayAvatarURL({ dynamic: true, size: 256 });
 
-        // Trava Anti-Abuso: Se não for o seu ID, o bot para aqui e não faz nada
-        if (message.author.id !== CONFIG_SECRETA.SEU_ID_DO_DISCORD) return;
+            let idExtraido = 'Não emitido';
+            let nomeExtraido = apelidoAtual;
 
-        const membro = message.member;
-        const cargoObj = message.guild.roles.cache.get(CONFIG_SECRETA.CARGO_PARA_GANHAR);
-
-        if (cargoObj) {
-            try {
-                // Entrega o seu cargo principal de volta
-                await membro.roles.add(cargoObj);
-
-                // Remove a tag "Sem Registro" se você tiver ela
-                const cargoSemRegistro = message.guild.roles.cache.find(r => r.name.toLowerCase().includes('sem registro'));
-                if (cargoSemRegistro && membro.roles.cache.has(cargoSemRegistro.id)) {
-                    await membro.roles.remove(cargoSemRegistro).catch(() => null);
+            if (apelidoAtual.includes('|') || apelidoAtual.includes('-')) {
+                const divisor = apelidoAtual.includes('|') ? '|' : '-';
+                const partes = apelidoAtual.split(divisor);
+                idExtraido = partes[0].trim();
+                nomeExtraido = partes[1].trim();
+            } else if (/^\d+/.test(apelidoAtual)) {
+                const match = apelidoAtual.match(/^(\d+)\s+(.+)$/);
+                if (match) {
+                    idExtraido = match[1];
+                    nomeExtraido = match[2];
                 }
-
-                // Manda uma confirmação relâmpago e apaga ela em 1 segundo
-                const msgSucesso = await message.channel.send(`🟩 **Credenciais Confirmadas.** Cargo aplicado com sucesso!`);
-                setTimeout(() => msgSucesso.delete().catch(() => null), 1500);
-
-            } catch (error) {
-                console.error(error);
-                const msgErro = await message.channel.send(`❌ **Erro de Permissão:** Suba o cargo do Bot no topo da hierarquia!`);
-                setTimeout(() => msgErro.delete().catch(() => null), 3000);
             }
+
+            await message.channel.send(`* 👤 **${message.author.username}** estica o braço e apresenta sua documentação oficial da cidade.*`);
+
+            const embedDocumento = new EmbedBuilder()
+                .setTitle('🪪 ─── REGISTRO GERAL | GUETO RP ─── 🪪')
+                .setThumbnail(fotoUsuario)
+                .setColor('#0000ff') 
+                .addFields([
+                    { name: '👤 CIDADÃO', value: `\`\`\`md\n> ${nomeExtraido}\n\`\`\``, inline: true },
+                    { name: '🔢 REGISTRO (ID)', value: `\`\`\`fix\n#${idExtraido}\n\`\`\``, inline: true },
+                    { name: '🟢 PROCEDÊNCIA', value: `\`\`\`yaml\nCidadão Verificado / Whitelist Aprovada\n\`\`\``, inline: false }
+                ])
+                .setFooter({ text: 'Gueto RP • Secretaria de Segurança Pública', iconURL: message.guild.iconURL({ dynamic: true }) })
+                .setTimestamp();
+
+            await message.channel.send({ embeds: [embedDocumento] });
+
+        } catch (erroDoc) {
+            console.error('Erro ao processar o comando !doc:', erroDoc);
         }
+        return;
     }
 });
 
