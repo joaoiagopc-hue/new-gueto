@@ -15,7 +15,6 @@ const client = new Client({
 client.commands = new Collection();
 const commandsArray = [];
 
-// ▬▬▬ LEITOR DIRETO E MANUAL (GARANTE 100% QUE VAI ENCONTRAR OS ARQUIVOS) ▬▬▬
 const pastaRp = path.join(__dirname, 'commands/rp');
 if (fs.existsSync(pastaRp)) {
     const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js');
@@ -26,30 +25,21 @@ if (fs.existsSync(pastaRp)) {
             if ('data' in command && 'execute' in command) {
                 client.commands.set(command.data.name, command);
                 commandsArray.push(command.data.toJSON());
-                console.log(`✅ [SUCESSO] Comando estruturado encontrado: rp/${file}`);
+                console.log(`✅ Comando encontrado: rp/${file}`);
             }
         } catch (e) { console.error(e); }
     }
 }
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
 client.once('ready', async () => {
-    console.log(`🔥 [SISTEMA] ${client.user.tag} está pronto para o Gueto RP Azul!`);
+    console.log(`🔥 ${client.user.tag} pronto para o Gueto RP Azul!`);
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
-        console.log('🔄 [API] Sincronizando e forçando injeção de comandos...');
-        
-        // 🚨 CONFIGURAÇÃO DE INJEÇÃO DIRETA POR SERVIDOR
-        // ATENÇÃO: Substitua os números abaixo pelo ID real do seu servidor do Gueto RP!
-        await rest.put(
-            Routes.applicationGuildCommands(process.env.CLIENT_ID, '1503073223477035260'), 
-            { body: commandsArray }
-        );
-        
-        console.log('🎉 [CONCLUÍDO] Todos os comandos foram injetados com sucesso no seu servidor!');
-    } catch (error) { 
-        console.error('❌ [API ERRO] Falha crítica no registro de comandos:', error); 
-    }
+        console.log('🔄 Sincronizando comandos de barra...');
+        // 🚨 COLOQUE O ID NUMÉRICO REAL DO SEU SERVIDOR ABAIXO:
+        await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '1503073223477035260'), { body: commandsArray });
+        console.log('🎉 Comandos registrados com sucesso!');
+    } catch (error) { console.error(error); }
 });
 
 client.on('interactionCreate', async interaction => {
