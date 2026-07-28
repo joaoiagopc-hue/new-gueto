@@ -5,9 +5,9 @@ const path = require('path');
 const idFilePath = path.join(__dirname, '../../proximo_id.txt');
 
 function gerarProximoID() {
-    // 🚨 CONFIGURAÇÃO DE SEGURANÇA: Define o ID inicial da cidade como 25
+    // 🚨 CONFIGURAÇÃO DE SEGURANÇA: Define o ID inicial da cidade como 66
     if (!fs.existsSync(idFilePath)) {
-        fs.writeFileSync(idFilePath, '25');
+        fs.writeFileSync(idFilePath, '66');
     }
     const idAtual = parseInt(fs.readFileSync(idFilePath, 'utf8'), 10);
     const proximoId = idAtual + 1;
@@ -24,7 +24,7 @@ module.exports = {
         // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         const CONFIG = {
           CARGO_COM_ID: '1529945344241176738', 
-            CANAL_LOG_ID: '1529891192224088326'   // ID da sala de logs de identidade
+            CANAL_LOG_ID: '1529891192224088326'  // ID da sala de logs de identidade
         };
         // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
