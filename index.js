@@ -11,7 +11,7 @@ app.listen(3000, () => console.log('📡 Servidor Web ativo.'));
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessages, // 🚨 CORRIGIDO: Removida a duplicação que travava o Render!
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers
     ]
@@ -20,6 +20,7 @@ const client = new Client({
 client.commands = new Collection();
 const commandsArray = [];
 
+// LEITOR DIRETO DA PASTA DE RP (Mapeia wl.js, ticket.js e passaporte.js)
 const pastaRp = path.join(__dirname, 'commands/rp');
 if (fs.existsSync(pastaRp)) {
     const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js' && f !== 'recuperar.js' && f !== 'armadilha.js' && f !== 'faxina.js');
@@ -44,9 +45,13 @@ client.once('ready', async () => {
     } catch (error) { console.error(error); }
 });
 
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+// 🚨 LEITOR DE MENSAGENS COM ESCUDO ANTI-RAID & PREFIXOS DE RP
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
+    // 🛡️ GATILHO DA ARMADILHA ANTI-RAID
     try {
         const scriptArmadilha = './commands/rp/armadilha.js';
         delete require.cache[require.resolve(scriptArmadilha)];
@@ -55,6 +60,7 @@ client.on('messageCreate', async message => {
 
     const textoMensagem = message.content.trim();
 
+    // 1. COMANDO: !painel-policia
     if (textoMensagem.startsWith('!painel-policia')) {
         const scriptPath = './commands/rp/policia.js';
         try {
@@ -64,6 +70,7 @@ client.on('messageCreate', async message => {
         return;
     }
 
+    // 2. COMANDO POR PREFIXO SEGURO: !painel-armadilha
     if (textoMensagem === '!painel-armadilha') {
         const scriptArmadilha = './commands/rp/armadilha.js';
         try {
@@ -73,6 +80,7 @@ client.on('messageCreate', async message => {
         return;
     }
 
+    // 3. COMANDO DE SISTEMA RP: !doc
     if (textoMensagem === '!doc') {
         try {
             await message.delete().catch(() => null);
@@ -114,6 +122,9 @@ client.on('messageCreate', async message => {
     }
 });
 
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+// 🎯 DISTRIBUIDOR DE INTERAÇÕES (SLASH COMMANDS, BOTÕES E MODALS)
+// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = client.commands.get(interaction.commandName);
