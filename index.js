@@ -11,7 +11,7 @@ app.listen(3000, () => console.log('📡 Servidor Web ativo.'));
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers
     ]
@@ -20,7 +20,6 @@ const client = new Client({
 client.commands = new Collection();
 const commandsArray = [];
 
-// LEITOR DIRETO DA PASTA DE RP (Mapeia wl.js, ticket.js e passaporte.js)
 const pastaRp = path.join(__dirname, 'commands/rp');
 if (fs.existsSync(pastaRp)) {
     const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js' && f !== 'recuperar.js' && f !== 'armadilha.js' && f !== 'faxina.js');
@@ -40,19 +39,14 @@ client.once('ready', async () => {
     console.log(`🔥 ${client.user.tag} pronto para o Gueto RP Azul!`);
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     try {
-        // Registra apenas os comandos de barra oficiais limpos de forma limpa na guilda
         await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '1531002237705392291'), { body: commandsArray });
         console.log('🎉 Comandos registrados com sucesso!');
     } catch (error) { console.error(error); }
 });
 
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🚨 LEITOR DE MENSAGENS COM ESCUDO ANTI-RAID & PREFIXOS DE RP
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    // 🛡️ GATILHO DA ARMADILHA ANTI-RAID (Sempre roda primeiro por segurança)
     try {
         const scriptArmadilha = './commands/rp/armadilha.js';
         delete require.cache[require.resolve(scriptArmadilha)];
@@ -61,7 +55,6 @@ client.on('messageCreate', async message => {
 
     const textoMensagem = message.content.trim();
 
-    // 1. COMANDO: !painel-policia
     if (textoMensagem.startsWith('!painel-policia')) {
         const scriptPath = './commands/rp/policia.js';
         try {
@@ -71,7 +64,6 @@ client.on('messageCreate', async message => {
         return;
     }
 
-    // 2. NOVO COMANDO POR PREFIXO SEGURO: !painel-armadilha
     if (textoMensagem === '!painel-armadilha') {
         const scriptArmadilha = './commands/rp/armadilha.js';
         try {
@@ -81,7 +73,6 @@ client.on('messageCreate', async message => {
         return;
     }
 
-    // 3. COMANDO DE SISTEMA RP: !doc
     if (textoMensagem === '!doc') {
         try {
             await message.delete().catch(() => null);
@@ -108,9 +99,9 @@ client.on('messageCreate', async message => {
             const embedDocumento = new EmbedBuilder()
                 .setTitle('🪪 ─── REGISTRO GERAL | GUETO RP ─── 🪪')
                 .setThumbnail(fotoUsuario)
-                .setColor('#0000ff') 
+                .setColor('#2f3136') 
                 .addFields([
-                    { name: '👤 CIDADÃO', value: `\`\`\`fix\n${nomeExtraido}\n\`\`\``, inline: true },
+                    { name: '👤 CIDADÃO', value: `\`\`\`md\n> ${nomeExtraido}\n\`\`\``, inline: true },
                     { name: '🔢 REGISTRO (ID)', value: `\`\`\`fix\n#${idExtraido}\n\`\`\``, inline: true },
                     { name: '🟢 PROCEDÊNCIA', value: `\`\`\`yaml\nCidadão Verificado / Whitelist Aprovada\n\`\`\``, inline: false }
                 ])
@@ -123,9 +114,6 @@ client.on('messageCreate', async message => {
     }
 });
 
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🎯 DISTRIBUIDOR DE INTERAÇÕES (SLASH COMMANDS, BOTÕES E MODALS)
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
         const command = client.commands.get(interaction.commandName);
@@ -142,7 +130,7 @@ client.on('interactionCreate', async interaction => {
             if (interaction.customId.includes('wl') || interaction.customId.includes('whitelist') || interaction.customId.startsWith('wl_resp_')) {
                 await require('./commands/admin/wl_botoes.js').handleInteraction(interaction, client);
             }
-            if (interaction.customId.includes('ticket') || interaction.customId.includes('fechamento') || interaction.customId.includes('motivo')) {
+            if (interaction.customId.includes('ticket') || interaction.customId.includes('fechamento') || interaction.customId.includes('motivo') || interaction.customId.startsWith('voto_')) {
                 await require('./commands/admin/ticket_botoes.js').handleInteraction(interaction);
             }
         } catch (error) { console.error(error); }

@@ -3,22 +3,31 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('painel-id')
-        .setDescription('Envia o painel de solicitação de ID da cidade (Comando de Barra)')
+        .setDescription('Envia o painel de solicitação de ID da cidade (Design Premium)')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
-        const icone = interaction.guild.iconURL({ dynamic: true, size: 512 });
         const embed = new EmbedBuilder()
-            .setTitle('💥 ─── CIDADANIA | GUETO RP ─── 💥')
-            .setDescription('👋 **Seja muito bem-vindo à nossa Central de Identidade!**\n\nPara conseguir o acesso livre à nossa cidade de Brookhaven, você precisa gerar o seu número de registro oficial em nosso sistema.\n\n📜 **COMO FUNCIONA O PROCESSO:**\n• Clique no botão abaixo verde escrito **"Solicitar ID"**.\n• Digite o seu **Nick do Roblox** idêntico ao do jogo.\n• O bot vai gerar um ID sequencial único para você instantaneamente!\n\n⚠️ **AVISOS IMPORTANTES:**\n ➜ O seu nome aqui no Discord será alterado para: `[ID] | [Seu Nick]`.\n ➜ Você receberá o cargo oficial de "Com ID" liberando o acesso ao canal de Whitelist.\n ➜ Guarde bem o seu número, ele será sua identidade no Brookhaven!')
-            .setColor('#0000ff')
-            .setThumbnail(icone)
-            .setFooter({ text: 'Gueto RP • Sistema de Identidade Automatizado', iconURL: icone })
-            .setTimestamp();
+            .setTitle('🪪 GUETO RP • Central de Passaporte')
+            .setDescription(
+                `Canal oficial: <#${interaction.channel.id}>\n\n` +
+                'Sistema ativo para emissão de registro civil automatizado. Todos os novos moradores precisam gerar sua numeração oficial antes de prosseguir.\n\n' +
+                '┃ Para conseguir o acesso, você precisa vincular sua conta do jogo.\n' +
+                '┃ Clique no botão verde abaixo escrito **"Solicitar ID"**.\n' +
+                '┃ Digite o seu **Nick do Roblox** idêntico ao do jogo do Brookhaven.\n' +
+                '┃ O bot alterará seu nome para: `[ID] | [Seu Nick]` de forma imediata.\n\n' +
+                '✅ **Verificações ativas:** Banco de dados integrado, trava anti-duplicação de identidade.\n' +
+                '🚫 **Passaportes revogados:** 0\n' +
+                '🟨 **Cidadãos registrados:** Ativo\n' +
+                '*GUETO RP — Identity System*'
+            )
+            .setColor('#2f3136');
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('solicitar_id_botao').setLabel('Solicitar ID 🪪').setStyle(ButtonStyle.Success)
+        const rowBotoes = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('solicitar_id_botao').setLabel('Solicitar ID 🪪').setStyle(ButtonStyle.Success),
+            new ButtonBuilder().setCustomId('status_fake_id').setLabel('🪪 Emissão: 100% Automática').setStyle(ButtonStyle.Danger).setDisabled(true)
         );
-        await interaction.reply({ content: '✅ Painel enviado!', ephemeral: true });
-        await interaction.channel.send({ embeds: [embed], components: [row] });
+
+        await interaction.reply({ content: '✅ Painel de ID enviado com os botões atualizados!', ephemeral: true });
+        await interaction.channel.send({ embeds: [embed], components: [rowBotoes] });
     }
 };

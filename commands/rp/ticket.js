@@ -3,23 +3,31 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('painel-ticket')
-        .setDescription('Envia o painel de suporte da cidade (Comando de Barra)')
+        .setDescription('Envia o painel de suporte da cidade (Design Premium)')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
-        const icone = interaction.guild.iconURL({ dynamic: true, size: 512 });
         const embed = new EmbedBuilder()
-            .setTitle('🎫 ─── CENTRAL DE SUPORTE | GUETO RP ─── 🎫')
-            .setDescription('👋 **Precisa de auxílio ou deseja reportar uma infração?**\n\nA nossa equipe de atendimento está de prontidão para te ajudar. Escolha abaixo a categoria que melhor se encaixa com o seu problema.\n\n🛠️ **SUPORTE GERAL:**\n• Uso exclusivo para tirar dúvidas ou bugs.\n\n🚨 **DENÚNCIAS & RECLAMAÇÕES:**\n• Uso exclusivo para reportar quebras de regras.')
-            .setColor('#0000ff')
-            .setThumbnail(icone) 
-            .setFooter({ text: 'Gueto RP • Sistema de Suporte Integrado', iconURL: icone })
-            .setTimestamp();
+            .setTitle('🎫 GUETO RP • Central de Suporte')
+            .setDescription(
+                `Atendimento: **Disponível 24/7**\n\n` +
+                'Sistema ativo para gerenciar denúncias contra quebras de diretrizes, relatórios de bugs e dúvidas gerais sobre a jogabilidade.\n\n' +
+                '┃ Canais abertos por este painel são privados entre você e a equipe.\n' +
+                '┃ Mensagem troll ou abuso do sistema recebe **warn administrativo**.\n' +
+                '┃ Utilize a categoria correta para agilizar o tempo de resposta da Staff.\n' +
+                '┃ Ao encerrar, o morador poderá avaliar o suporte de **1 a 5 estrelas**.\n\n' +
+                '✅ **Verificações ativas:** Logs criptografadas, avaliação de staff e pings automáticos.\n' +
+                '🚫 **Chamados perigosos neutralizados:** 4\n' +
+                '🟨 **Atendimentos concluídos:** Registro ativo\n' +
+                '*GUETO RP — Ticket System*'
+            )
+            .setColor('#2f3136');
 
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('abrir_ticket_suporte').setLabel('Suporte Geral 🛠️').setStyle(ButtonStyle.Secondary),
+        const rowBotoes = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('abrir_ticket_suporte').setLabel('Suporte Geral 🛠️').setStyle(ButtonStyle.Danger),
             new ButtonBuilder().setCustomId('abrir_ticket_denuncia').setLabel('Denúncias 🚨').setStyle(ButtonStyle.Danger)
         );
-        await interaction.reply({ content: '✅ Painel enviado!', ephemeral: true });
-        await interaction.channel.send({ embeds: [embed], components: [row] });
+
+        await interaction.reply({ content: '✅ Painel de Tickets enviado com os botões atualizados!', ephemeral: true });
+        await interaction.channel.send({ embeds: [embed], components: [rowBotoes] });
     }
 };

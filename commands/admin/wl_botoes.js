@@ -5,12 +5,12 @@ module.exports = {
         
         // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         // ⚙️ CENTRAL DE CONFIGURAÇÃO DE CARGOS DO GUETO RP
-        // Coloque abaixo os IDs numéricos reais do seu Discord
+        // Substitua os números abaixo pelos IDs reais do seu Discord!
         // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
         const CONFIG = { 
             CARGO_COM_REGISTRO: '1527698641412817056', // Cargo ganho ao passar (Morador/Cidadão)
             CARGO_COM_ID:       '1529945344241176738', // Primeiro cargo retirado (Com ID)
-            CARGO_SEM_REGISTRO: '1515730336313512076' // Segundo cargo retirado (Sem Registro)
+            CARGO_SEM_REGISTRO: '1515730336313512076'// ID do segundo cargo retirado (Sem Registro)
         };
         // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
@@ -27,28 +27,35 @@ module.exports = {
         if (!client.wlSessions) client.wlSessions = new Map();
         if (!client.wlCompletadas) client.wlCompletadas = new Set();
 
-        // 1. CLICOU NO BOTÃO "FAZER WHITELIST" NO PAINEL
+        // 1. CLICOU NO BOTÃO "FAZER WHITELIST" NO PAINEL PRINCIPAL
         if (interaction.customId === 'iniciar_wl_botao') {
             
-            // Trava máxima: Se ele já foi aprovado e completou, bloqueia para sempre
+            // Trava máxima de segurança contra aprovados refazendo o teste
             if (client.wlCompletadas.has(interaction.user.id)) {
-                return interaction.reply({ content: '⚠️ **Bloqueado:** Você já realizou o seu exame de Whitelist com sucesso e já é um morador aprovado!', ephemeral: true });
+                return interaction.reply({ 
+                    content: '⚠️ **Bloqueado:** Você já realizou o seu exame de Whitelist com sucesso e já é um morador aprovado no Gueto RP!', 
+                    ephemeral: true 
+                });
             }
 
-            // 🚨 SOLUÇÃO DO BUG: Se ele já tinha uma sessão mas clicou em iniciar de novo (porque ignorou a mensagem), reseta a antiga e deixa ele tentar novamente do zero!
+            // CORREÇÃO DO BUG: Se ele sumiu com a mensagem, o bot apaga a sessão velha e cria uma nova limpa na hora
             if (client.wlSessions.has(interaction.user.id)) {
                 client.wlSessions.delete(interaction.user.id);
             }
 
-            // Cria a nova sessão zerada na hora
             client.wlSessions.set(interaction.user.id, { etapa: 0, acertos: 0 });
             return enviarEtapaWl(interaction, interaction.user.id, questionario, client);
         }
 
-        // 2. CLICOU EM UMA DAS ALTERNATIVAS (A, B, C ou D)
+        // 2. CLICOU EM UMA DAS ALTERNATIVAS DO TESTE (A, B, C ou D)
         if (interaction.customId.startsWith('wl_resp_')) {
             const sessao = client.wlSessions.get(interaction.user.id);
-            if (!sessao) return interaction.reply({ content: '❌ Sessão expirada. Clique em "Fazer Whitelist" novamente no painel público.', ephemeral: true });
+            if (!sessao) {
+                return interaction.reply({ 
+                    content: '❌ **Sessão Expirada:** Clique no botão azul "Fazer Whitelist" novamente no painel público para recomeçar.', 
+                    ephemeral: true 
+                });
+            }
 
             const escolha = interaction.customId.replace('wl_resp_', '');
             const qAtual = questionario[sessao.etapa];
@@ -65,10 +72,24 @@ module.exports = {
 
                 const passou = sessao.acertos >= 3;
 
+                // Formatação do comprovante do teste no estilo escuro e denso premium solicitado
+                const embedResultado = new EmbedBuilder()
+                    .setTitle('🧱 GUETO RP • Resultado da Whitelist')
+                    .setColor('#2f3136')
+                    .setTimestamp();
+
                 if (passou) {
-                    // Salva na lista definitiva de aprovados para ele nunca mais conseguir refazer
                     client.wlCompletadas.add(interaction.user.id);
-                    await interaction.editReply({ content: `🎉 **PARABÉNS! Você acertou ${sessao.acertos}/7 questões e foi aprovado no Gueto RP!**\nSeus cargos foram aplicados automaticamente. Divirta-se!`, embeds: [], components: [] });
+
+                    embedResultado.setDescription(
+                        `🎉 **PARABÉNS! Você concluiu a verificação de regras com sucesso!**\n\n` +
+                        `📌 **STATUS:** \`MORADOR APROVADO / LIBERADO\`\n\n` +
+                        `┃ **ACERTOS:** ${sessao.acertos}/7 Questões\n` +
+                        `┃ **RESULTADO:** Acesso concedido às vias de Brookhaven.\n\n` +
+                        `✅ Seus cargos antigos foram removidos e a tag de Morador foi aplicada. Divirta-se!`
+                    );
+
+                    await interaction.editReply({ embeds: [embedResultado], components: [] });
                     
                     const m = await interaction.guild.members.fetch(interaction.user.id).catch(() => null);
                     if (m) {
@@ -77,7 +98,15 @@ module.exports = {
                         try { if (CONFIG.CARGO_SEM_REGISTRO !== '123456789012345678') await m.roles.remove(CONFIG.CARGO_SEM_REGISTRO); } catch(e){}
                     }
                 } else {
-                    await interaction.editReply({ content: `❌ **Você acertou apenas ${sessao.acertos}/7 questões e foi reprovado.**\nÉ necessário acertar pelo menos 3 perguntas. Estude as regras e tente novamente clicando no botão principal!`, embeds: [], components: [] });
+                    embedResultado.setDescription(
+                        `❌ **Você foi reprovado por falta de pontuação.**\n\n` +
+                        `📌 **STATUS:** \`REPROVADO / REFAZER EXAME\`\n\n` +
+                        `┃ **ACERTOS:** ${sessao.acertos}/7 Questões (Mínimo necessário: 3 acertos)\n` +
+                        `┃ **DIRETRIZ:** É necessário estudar melhor os conceitos básicos de RP.\n\n` +
+                        `⚠️ Não desanime! Estude a nossa central de regras e clique no painel público para tentar novamente.`
+                    );
+
+                    await interaction.editReply({ embeds: [embedResultado], components: [] });
                 }
             }
         }
@@ -87,16 +116,23 @@ module.exports = {
 async function enviarEtapaWl(interaction, userId, questionario, client) {
     const sessao = client.wlSessions.get(userId);
     const questao = questionario[sessao.etapa];
+    
+    // Embed das perguntas estilizada com o novo fundo escuro densificado premium
     const embed = new EmbedBuilder()
         .setTitle(`📝 EXAME DE WHITELIST — QUESTÃO ${sessao.etapa + 1} DE 7`)
-        .setDescription(`**${questao.pergunta}**\n\n${questao.opcoes.join('\n')}\n\n⚠️ *Escolha a alternativa correta utilizando os botões abaixo:*`)
-        .setColor('#0000ff');
+        .setDescription(
+            `**${questao.pergunta}**\n\n` +
+            `${questao.opcoes.join('\n')}\n\n` +
+            `⚠️ *Utilize os botões vermelhos no rodapé para votar na alternativa correta:*`
+        )
+        .setColor('#2f3136');
 
+    // Botões das alternativas padronizados com o estilo Danger (Vermelho) baseado na sua referência
     const bts = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(`wl_resp_A`).setLabel('Alternativa A').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`wl_resp_B`).setLabel('Alternativa B').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`wl_resp_C`).setLabel('Alternativa C').setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder().setCustomId(`wl_resp_D`).setLabel('Alternativa D').setStyle(ButtonStyle.Secondary)
+        new ButtonBuilder().setCustomId(`wl_resp_A`).setLabel('A').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(`wl_resp_B`).setLabel('B').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(`wl_resp_C`).setLabel('C').setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId(`wl_resp_D`).setLabel('D').setStyle(ButtonStyle.Danger)
     );
 
     return interaction.customId === 'iniciar_wl_botao' 
