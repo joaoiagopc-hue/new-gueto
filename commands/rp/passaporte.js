@@ -1,33 +1,33 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('painel-id')
-        .setDescription('Envia o painel de solicitação de ID da cidade (Design Premium)')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    async execute(interaction) {
-        const embed = new EmbedBuilder()
-            .setTitle('🪪 GUETO RP • Central de Passaporte')
-            .setDescription(
-                `Canal oficial: <#${interaction.channel.id}>\n\n` +
-                'Sistema ativo para emissão de registro civil automatizado. Todos os novos moradores precisam gerar sua numeração oficial antes de prosseguir.\n\n' +
-                '┃ Para conseguir o acesso, você precisa vincular sua conta do jogo.\n' +
-                '┃ Clique no botão verde abaixo escrito **"Solicitar ID"**.\n' +
-                '┃ Digite o seu **Nick do Roblox** idêntico ao do jogo do Brookhaven.\n' +
-                '┃ O bot alterará seu nome para: `[ID] | [Seu Nick]` de forma imediata.\n\n' +
-                '✅ **Verificações ativas:** Banco de dados integrado, trava anti-duplicação de identidade.\n' +
-                '🚫 **Passaportes revogados:** 0\n' +
-                '🟨 **Cidadãos registrados:** Ativo\n' +
-                '*GUETO RP — Identity System*'
-            )
-            .setColor('#2f3136');
+        .setName('passaporte')
+        .setDescription('Consulta o número do seu passaporte/ID oficial ativo no servidor.'),
 
-        const rowBotoes = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('solicitar_id_botao').setLabel('Solicitar ID 🪪').setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId('status_fake_id').setLabel('🪪 Emissão: 100% Automática').setStyle(ButtonStyle.Danger).setDisabled(true)
-        );
+    async executePassaporteComando(interaction) {
+        // Captura o apelido do jogador no servidor
+        const apelidoMembro = interaction.member.displayName;
 
-        await interaction.reply({ content: '✅ Painel de ID enviado com os botões atualizados!', ephemeral: true });
-        await interaction.channel.send({ embeds: [embed], components: [rowBotoes] });
+        // Executa uma expressão regular para capturar os números dentro dos colchetes [ID]
+        const correspondenciaId = apelidoMembro.match(/^\[(\d+)\]/);
+
+        if (!correspondenciaId) {
+            return interaction.reply({ 
+                content: '⚠️ **Nenhum Passaporte Localizado!** Você ainda não possui um número de ID registrado no seu nome. Clique no botão de solicitação na prefeitura!', 
+                ephemeral: true 
+            });
+        }
+
+        // Puxa o número do ID extraído do apelido do usuário
+        const idExtraido = correspondenciaId[1];
+
+        const embedConsulta = new EmbedBuilder()
+            .setTitle('🪪 REGISTRO CIVIL — Consulta de Passaporte')
+            .setDescription(`Olá! Aqui estão as informações do seu documento oficial ativo na cidade:\n\n👤 **Morador:** <@${interaction.user.id}>\n🆔 **Número do Passaporte (ID):** \`${idExtraido}\``)
+            .setColor('#2f3136')
+            .setFooter({ text: 'Gueto RP — Sistema de Identidade Civil via Nick' });
+
+        return interaction.reply({ embeds: [embedConsulta], ephemeral: true });
     }
 };
