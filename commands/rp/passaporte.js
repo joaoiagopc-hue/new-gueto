@@ -1,15 +1,17 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
+    // 🚨 FIX 1: Alterado o nome do comando barra para bater exatamente com o seu /painel-id do print!
     data: new SlashCommandBuilder()
-        .setName('passaporte')
+        .setName('painel-id')
         .setDescription('Consulta o número do seu passaporte/ID oficial ativo no servidor.'),
 
-    async executePassaporteComando(interaction) {
+    // 🚨 FIX 2: O nome da função precisa ser obrigatoriamente "execute" para o seu index.js ler sem dar crash!
+    async execute(interaction) {
         // Captura o apelido do jogador no servidor
         const apelidoMembro = interaction.member.displayName;
 
-        // Executa uma expressão regular para capturar os números dentro dos colchetes [ID]
+        // Executa a expressão regular para capturar os números dentro dos colchetes [ID]
         const correspondenciaId = apelidoMembro.match(/^\[(\d+)\]/);
 
         if (!correspondenciaId) {
