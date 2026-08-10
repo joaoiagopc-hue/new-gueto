@@ -1,35 +1,52 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
-    // 🚨 FIX 1: Alterado o nome do comando barra para bater exatamente com o seu /painel-id do print!
+    // 🚨 Comando mestre que a Staff usa para fixar o painel no canal da prefeitura
     data: new SlashCommandBuilder()
         .setName('painel-id')
-        .setDescription('Consulta o número do seu passaporte/ID oficial ativo no servidor.'),
+        .setDescription('🔒 Comando Staff: Envia o painel com o botão de solicitar ID/Passaporte na prefeitura.'),
 
-    // 🚨 FIX 2: O nome da função precisa ser obrigatoriamente "execute" para o seu index.js ler sem dar crash!
     async execute(interaction) {
-        // Captura o apelido do jogador no servidor
-        const apelidoMembro = interaction.member.displayName;
-
-        // Executa a expressão regular para capturar os números dentro dos colchetes [ID]
-        const correspondenciaId = apelidoMembro.match(/^\[(\d+)\]/);
-
-        if (!correspondenciaId) {
+        // Trava de segurança: Apenas quem tem cargo ou permissão de moderador pode enviar o painel público
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return interaction.reply({ 
-                content: '⚠️ **Nenhum Passaporte Localizado!** Você ainda não possui um número de ID registrado no seu nome. Clique no botão de solicitação na prefeitura!', 
+                content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel de registros civis.', 
                 ephemeral: true 
             });
         }
 
-        // Puxa o número do ID extraído do apelido do usuário
-        const idExtraido = correspondenciaId[1];
-
-        const embedConsulta = new EmbedBuilder()
-            .setTitle('🪪 REGISTRO CIVIL — Consulta de Passaporte')
-            .setDescription(`Olá! Aqui estão as informações do seu documento oficial ativo na cidade:\n\n👤 **Morador:** <@${interaction.user.id}>\n🆔 **Número do Passaporte (ID):** \`${idExtraido}\``)
+        // 🎨 MOLDAGEM DA EMBED OFICIAL CIVIL DA PREFEITURA DO GUETO RP
+        const embedPrefeituraID = new EmbedBuilder()
+            .setTitle('🧱 PREFEITURA CIVIL • EMISSÃO DE PASSAPORTES')
+            .setDescription(
+                `Seja muito bem-vindo ao Setor de Registro de Identidades do **Gueto RP**!\n\n` +
+                `Para iniciar a sua jornada em nossa cidade, comprar suas propriedades, veículos e se registrar nos sistemas legais ou facções, você precisa de um documento civil ativo.\n\n` +
+                `⚙️ **INSTRUÇÕES DE SOLICITAÇÃO:**\n` +
+                `┃ 📌 Clique no botão **\`Solicitar ID\`** localizado logo abaixo.\n` +
+                `┃ 📌 O sistema vai registrar a sua conta no banco de dados da prefeitura.\n` +
+                `┃ 📌 Seu nome no Discord será alterado automaticamente para o formato: \`[ID] Nick\`.\n` +
+                `┃ 📌 O cargo de morador ativo será injetado no seu perfil no mesmo milissegundo!\n\n` +
+                `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado. A duplicação ou fraude de documentos gera punições civis pela administração.*`
+            )
             .setColor('#2f3136')
-            .setFooter({ text: 'Gueto RP — Sistema de Identidade Civil via Nick' });
+            .setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' })
+            .setTimestamp();
 
-        return interaction.reply({ embeds: [embedConsulta], ephemeral: true });
+        // 🟢 BOTÃO CLEAN ADAPTADO: Sincronizado perfeitamente com o seu passaporte_botoes.js
+        const linhaBotao = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('solicitar_id_botao') // 🚨 ID IDENTICO ao que o seu passaporte_botoes.js escuta!
+                .setLabel('🪪 Solicitar ID')
+                .setStyle(ButtonStyle.Success) // Botão Verde Clean Estético
+        );
+
+        // Dispara a Embed com o botão no canal e responde o Staff em modo oculto
+        try {
+            await interaction.channel.send({ embeds: [embedPrefeituraID], components: [linhaBotao] });
+            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de emissão de passaportes com o botão ativo foi injetado na sala com sucesso.', ephemeral: true });
+        } catch (error) {
+            console.error('Erro ao enviar painel de passaportes:', error);
+            return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed de passaportes neste canal.', ephemeral: true });
+        }
     }
 };
