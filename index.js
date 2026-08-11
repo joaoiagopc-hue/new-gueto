@@ -1,150 +1,120 @@
-const { Client, GatewayIntentBits, Collection, REST, Routes, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
 require('dotenv').config();
 
 const app = express();
-app.get('/', (req, res) => res.send('🚀 Bot do Gueto RP Azul Online!'));
-app.listen(3000, () => console.log('📡 Servidor Web ativo.'));
+app.get('/', (req, res) => res.send('🧱 Central GUETO HELP Ativa!'));
+app.listen(process.env.PORT || 3000, () => console.log('📡 Porta ativa para o Render.'));
 
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages, // 🚨 CORRIGIDO: Removida a duplicação que travava o Render!
+        GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.DirectMessages
     ]
 });
 
-client.commands = new Collection();
-const commandsArray = [];
-
-// LEITOR DIRETO DA PASTA DE RP (Mapeia wl.js, ticket.js e passaporte.js)
-const pastaRp = path.join(__dirname, 'commands/rp');
-if (fs.existsSync(pastaRp)) {
-    const arquivosRp = fs.readdirSync(pastaRp).filter(f => f.endsWith('.js') && f !== 'policia.js' && f !== 'recuperar.js' && f !== 'armadilha.js' && f !== 'faxina.js');
-    for (const file of arquivosRp) {
+// Buscador Relâmpago Adaptado para Subpastas e Raiz de forma segura
+function carregarModuloSeguro(caminhoRelativo) {
+    const caminho = path.join(__dirname, caminhoRelativo);
+    if (fs.existsSync(caminho)) {
         try {
-            const filePath = path.join(pastaRp, file);
-            const command = require(filePath);
-            if ('data' in command && 'execute' in command) {
-                client.commands.set(command.data.name, command);
-                commandsArray.push(command.data.toJSON());
-            }
-        } catch (e) { console.error(e); }
+            delete require.cache[require.resolve(caminho)];
+            return require(caminho);
+        } catch (err) {
+            console.error(`❌ Erro ao ler o script local em: ${caminho}`, err);
+        }
     }
+    return null;
 }
 
 client.once('ready', async () => {
-    console.log(`🔥 ${client.user.tag} pronto para o Gueto RP Azul!`);
+    console.log('🧱 [BOT HELP] Central online focada 100% em Tickets, Administração e Anti-Scam!');
+
+    const commands = [
+        new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
+        new SlashCommandBuilder().setName('top-avaliar').setDescription('Exibe o ranking de avaliação e média da Staff.'),
+        new SlashCommandBuilder().setName('painel-armadilha').setDescription('Envia o painel de métricas do sistema Anti-Scam.'),
+        new SlashCommandBuilder().setName('cria-embed').setDescription('🔒 Comando Staff: Abre o formulário para criar uma Embed personalizada em parágrafo.'),
+        new SlashCommandBuilder().setName('painel-id').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.')
+    ].map(command => command.toJSON());
+
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
     try {
-        await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '1531002237705392291'), { body: commandsArray });
-        console.log('🎉 Comandos registrados com sucesso!');
-    } catch (error) { console.error(error); }
+        console.log('🔄 Sincronizando comandos barra com o Discord...');
+        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+        console.log('✅ Todos os comandos barra (/) foram injetados com sucesso!');
+    } catch (error) {
+        console.error('❌ Erro ao registrar Slash Commands:', error);
+    }
 });
 
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🚨 LEITOR DE MENSAGENS COM ESCUDO ANTI-RAID & PREFIXOS DE RP
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+// 🚨 CENTRAL DE ESCUTA DO CHAT
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    // 🛡️ GATILHO DA ARMADILHA ANTI-RAID
+    // Escudo Anti-Raid e Anti-Troll (armadilha.js) ativo em segundo plano
     try {
-        const scriptArmadilha = './commands/rp/armadilha.js';
-        delete require.cache[require.resolve(scriptArmadilha)];
-        await require(scriptArmadilha).executeArmadilha(message);
-    } catch (e) { console.error('Erro no Escudo Anti-Raid:', e); }
-
-    const textoMensagem = message.content.trim();
-
-    // 1. COMANDO: !painel-policia
-    if (textoMensagem.startsWith('!painel-policia')) {
-        const scriptPath = './commands/rp/policia.js';
-        try {
-            delete require.cache[require.resolve(scriptPath)];
-            await require(scriptPath).executePrefix(message);
-        } catch (e) { console.error(e); }
-        return;
-    }
-
-    // 2. COMANDO POR PREFIXO SEGURO: !painel-armadilha
-    if (textoMensagem === '!painel-armadilha') {
-        const scriptArmadilha = './commands/rp/armadilha.js';
-        try {
-            delete require.cache[require.resolve(scriptArmadilha)];
-            await require(scriptArmadilha).executePrefixPainel(message);
-        } catch (e) { console.error(e); }
-        return;
-    }
-
-    // 3. COMANDO DE SISTEMA RP: !doc
-    if (textoMensagem === '!doc') {
-        try {
-            await message.delete().catch(() => null);
-            const apelidoAtual = message.member.displayName;
-            const fotoUsuario = message.author.displayAvatarURL({ dynamic: true, size: 256 });
-            let idExtraido = 'Não emitido';
-            let nomeExtraido = apelidoAtual;
-
-            if (apelidoAtual.includes('|') || apelidoAtual.includes('-')) {
-                const divisor = apelidoAtual.includes('|') ? '|' : '-';
-                const partes = apelidoAtual.split(divisor);
-                idExtraido = partes[0].trim();
-                nomeExtraido = partes[1].trim();
-            } else if (/^\d+/.test(apelidoAtual)) {
-                const match = apelidoAtual.match(/^(\d+)\s+(.+)$/);
-                if (match) {
-                    idExtraido = match[1];
-                    nomeExtraido = match[2];
-                }
-            }
-
-            await message.channel.send(`* 👤 **${message.author.username}** estica o braço e apresenta sua documentação oficial da cidade.*`);
-
-            const embedDocumento = new EmbedBuilder()
-                .setTitle('🪪 ─── REGISTRO GERAL | GUETO RP ─── 🪪')
-                .setThumbnail(fotoUsuario)
-                .setColor('#2f3136') 
-                .addFields([
-                    { name: '👤 CIDADÃO', value: `\`\`\`md\n> ${nomeExtraido}\n\`\`\``, inline: true },
-                    { name: '🔢 REGISTRO (ID)', value: `\`\`\`fix\n#${idExtraido}\n\`\`\``, inline: true },
-                    { name: '🟢 PROCEDÊNCIA', value: `\`\`\`yaml\nCidadão Verificado / Whitelist Aprovada\n\`\`\``, inline: false }
-                ])
-                .setFooter({ text: 'Gueto RP • Secretaria de Segurança Pública', iconURL: message.guild.iconURL({ dynamic: true }) })
-                .setTimestamp();
-
-            await message.channel.send({ embeds: [embedDocumento] });
-        } catch (erroDoc) { console.error(erroDoc); }
-        return;
-    }
+        const armadilhaModule = carregarModuloSeguro('armadilha.js');
+        if (armadilhaModule && typeof armadilhaModule.verificarAmeacasArmadilha === 'function') {
+            const interceptouAmeaca = await armadilhaModule.verificarAmeacasArmadilha(message);
+            if (interceptouAmeaca) return;
+        }
+    } catch (e) { }
 });
 
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
-// 🎯 DISTRIBUIDOR DE INTERAÇÕES (SLASH COMMANDS, BOTÕES E MODALS)
-// ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+// 🎯 DISTRIBUIDOR CENTRAL DE INTERAÇÕES (BARRA, BOTÕES E MODALS)
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
-        const command = client.commands.get(interaction.commandName);
-        if (!command) return;
-        try { await command.execute(interaction); } catch (e) { console.error(e); }
-        return;
+        const { commandName } = interaction;
+        
+        if (commandName === 'painel-ticket') {
+            try { const m = carregarModuloSeguro('ticket_botoes.js'); if (m) await m.processarTudo(interaction); } catch (e) { console.error(e); }
+            return;
+        }
+        if (commandName === 'top-avaliar') {
+            try { const m = carregarModuloSeguro('ticket_botoes.js'); if (m) await m.processarTudo(interaction); } catch (e) { console.error(e); }
+            return;
+        }
+        if (commandName === 'painel-armadilha') {
+            try { const m = carregarModuloSeguro('armadilha.js'); if (m) await m.executePrefixArmadilha(interaction); } catch (e) { console.error(e); }
+            return;
+        }
+        if (commandName === 'cria-embed') {
+            try { const m = carregarModuloSeguro('cria_embed.js'); if (m) await m.executeSlashCriaEmbed(interaction); } catch (e) { console.error(e); }
+            return;
+        }
+        if (commandName === 'painel-id') {
+            try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
+            return;
+        }
     }
 
-    if (interaction.isButton() || interaction.isModalSubmit() || interaction.isStringSelectMenu()) {
+    // 🚨 GATILHO COMPARTILHADO: Escuta cliques em botões e envios de Modals Formulários!
+    if (interaction.isButton() || interaction.isModalSubmit()) {
+        
+        // 🎫 Roteia as interações do painel de Tickets (ticket_botoes.js na raiz)
         try {
-            if (interaction.customId.includes('id') || interaction.customId.includes('solicitar')) {
-                await require('./commands/admin/passaporte_botoes.js').handleInteraction(interaction);
+            const ticketModule = carregarModuloSeguro('ticket_botoes.js');
+            if (ticketModule) {
+                if (typeof ticketModule.handleInteractions === 'function') await ticketModule.handleInteractions(interaction);
+                else if (typeof ticketModule.handleInteraction === 'function') await ticketModule.handleInteraction(interaction);
             }
-            if (interaction.customId.includes('wl') || interaction.customId.includes('whitelist') || interaction.customId.startsWith('wl_resp_')) {
-                await require('./commands/admin/wl_botoes.js').handleInteraction(interaction, client);
+        } catch (e) { console.error(e); }
+
+        // 🪪 Roteia as interações do passaporte (passaporte_botoes.js dentro da subpasta!)
+        try {
+            const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
+            if (passaporteModule) {
+                if (typeof passaporteModule.handleInteractions === 'function') await passaporteModule.handleInteractions(interaction);
+                else if (typeof passaporteModule.handleInteraction === 'function') await passaporteModule.handleInteraction(interaction);
             }
-            if (interaction.customId.includes('ticket') || interaction.customId.includes('fechamento') || interaction.customId.includes('motivo') || interaction.customId.startsWith('voto_')) {
-                await require('./commands/admin/ticket_botoes.js').handleInteraction(interaction);
-            }
-        } catch (error) { console.error(error); }
+        } catch (e) { console.error(e); }
     }
 });
 
