@@ -18,6 +18,9 @@ const client = new Client({
     ]
 });
 
+// 🚨 NOVO FIX CORE CIVIL: Garante que a memória de White-list nasça ativa junto com o bot!
+client.wlSessoes = new Map();
+
 function carregarModuloSeguro(caminhoRelativo) {
     const caminho = path.join(__dirname, caminhoRelativo);
     if (fs.existsSync(caminho)) {
@@ -38,7 +41,7 @@ client.once('ready', async () => {
         new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
         new SlashCommandBuilder().setName('top-avaliar').setDescription('Exibe o ranking de avaliação e média da Staff.'),
         new SlashCommandBuilder().setName('painel-armadilha').setDescription('Envia o painel de métricas do sistema Anti-Scam.'),
-        new SlashCommandBuilder().setName('cria-embed').setDescription('🔒 Comando Staff: Abre o formulário para criar uma Embed personalizada in parágrafo.'),
+        new SlashCommandBuilder().setName('cria-embed').setDescription('🔒 Comando Staff: Abre o formulário para criar uma Embed personalizada em parágrafo.'),
         new SlashCommandBuilder().setName('painel-id').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.'),
         new SlashCommandBuilder().setName('painel-wl').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de iniciar o teste de White-List.')
     ].map(command => command.toJSON());
@@ -98,7 +101,6 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton() || interaction.isModalSubmit()) {
         
-        // 🎫 1. Roteia as interações do painel de Tickets apontando para a subpasta certa commands/admin/
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -108,7 +110,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 🪪 2. Roteia as interações do Passaporte apontando para a subpasta certa commands/admin/
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -118,7 +119,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 📝 3. Roteia o motor de exames da White-List apontando para a subpasta certa commands/admin/
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
@@ -130,5 +130,4 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// 🚨 LINHA BUGADA REMOVIDA DE FÁBRICA DE FORMA CIRÚRGICA DAQUI!
 client.login(process.env.DISCORD_TOKEN);
