@@ -1,13 +1,14 @@
 const { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
-    // Nome do comando barra que a Staff usa para fixar o painel de WL
+    // 🔒 Nome do comando barra que a Staff usa para fixar o painel na sala de exames
     data: new SlashCommandBuilder()
         .setName('painel-wl')
         .setDescription('🔒 Comando Staff: Envia o painel com o botão de iniciar o teste de White-List.'),
 
+    // 🚨 A propriedade precisa ser obrigatoriamente "execute" para o seu index.js ler sem dar crash!
     async execute(interaction) {
-        // Trava de segurança: Apenas quem tem permissões administrativas pode fixar o painel público
+        // Trava de segurança: Apenas quem possui permissões administrativas pode fixar o painel público
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return interaction.reply({ 
                 content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel de exame civil.', 
@@ -39,6 +40,7 @@ module.exports = {
                 .setStyle(ButtonStyle.Success) // Botão Verde Estético Minimalista
         );
 
+        // Dispara a Embed pública com o botão no canal e responde o Staff em modo oculto
         try {
             await interaction.channel.send({ embeds: [embedPrefeituraWL], components: [linhaBotao] });
             return interaction.reply({ content: '✅ **Painel Enviado!** O painel de White-List automática com botão ativo foi injetado com sucesso.', ephemeral: true });
