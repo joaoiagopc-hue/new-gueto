@@ -1,33 +1,50 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
+    // Nome do comando barra que a Staff usa para fixar o painel de WL
     data: new SlashCommandBuilder()
         .setName('painel-wl')
-        .setDescription('Envia o painel de Whitelist da cidade (Design Premium)')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    async execute(interaction) {
-        const embed = new EmbedBuilder()
-            .setTitle('📝 GUETO RP • Verificação de Whitelist')
-            .setDescription(
-                `Canal oficial: <#${interaction.channel.id}>\n\n` +
-                'Sistema ativo para avaliar conhecimentos básicos e garantir a qualidade do simulador. O exame de admissão é obrigatório para todos.\n\n' +
-                '┃ Clique no botão azul abaixo escrito **"Fazer Whitelist"**.\n' +
-                '┃ Responda ao questionário secreto de **7 perguntas** de múltipla escolha.\n' +
-                '┃ É necessário acertar pelo menos **3 questões** para receber sua aprovação.\n' +
-                '┃ Caso clique em "Ignorar mensagem" ou feche, o teste sofrerá auto-reset.\n\n' +
-                '✅ **Verificações ativas:** Respostas automáticas, proteção anti-duplicação de prova.\n' +
-                '🚫 **Candidatos reprovados:** 14\n' +
-                '🟨 **Moradores aprovados:** Ativo\n' +
-                '*GUETO RP — Whitelist System*'
-            )
-            .setColor('#2f3136');
+        .setDescription('🔒 Comando Staff: Envia o painel com o botão de iniciar o teste de White-List.'),
 
-        const rowBotoes = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId('iniciar_wl_botao').setLabel('Fazer Whitelist 📝').setStyle(ButtonStyle.Primary),
-            new ButtonBuilder().setCustomId('status_fake_wl').setLabel('📝 Status: Correção em Tempo Real').setStyle(ButtonStyle.Danger).setDisabled(true)
+    async execute(interaction) {
+        // Trava de segurança: Apenas quem tem permissões administrativas pode fixar o painel público
+        if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
+            return interaction.reply({ 
+                content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel de exame civil.', 
+                ephemeral: true 
+            });
+        }
+
+        // 🎨 MOLDAGEM DO PAINEL PÚBLICO DE EXAMES DO GUETO RP
+        const embedPrefeituraWL = new EmbedBuilder()
+            .setTitle('🧱 SISTEMA CENTRAL DE WHITE-LIST — GUETO RP')
+            .setDescription(
+                `Para liberar o seu passaporte e iniciar a sua imersão em nossa cidade, você deve passar pelo nosso Exame de Diretrizes Civis Automatizado.\n\n` +
+                `O bot vai analisar o seu conhecimento sobre as regras básicas de sobrevivência do nosso simulador de Roleplay.\n\n` +
+                `📊 **INFORMAÇÕES DO EXAME:**\n` +
+                `┃ 📝 **Quantidade:** 7 Perguntas de Múltipla Escolha (A, B, C, D).\n` +
+                `┃ 🎯 **Critério de Aprovação:** Você deve acertar pelo menos **4 de 7 perguntas** para passar!\n` +
+                `┃ 🏅 **Resultado Automático:** O bot faz a correção, altera seus cargos e te libera no mesmo segundo!\n\n` +
+                `👇 *Clique no botão verde abaixo para dar início ao seu teste direto neste canal:*`
+            )
+            .setColor('#2f3136')
+            .setFooter({ text: 'Gueto RP EXAM Core v4 — Correção 100% Automatizada' })
+            .setTimestamp();
+
+        // 🟢 BOTÃO CLEAN ADAPTADO: Totalmente sincronizado com o seu wl_botoes.js
+        const linhaBotao = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('iniciar_wl_botao') // 🚨 ID IDÊNTICO ao que o seu wl_botoes.js escuta!
+                .setLabel('📝 Iniciar White-List')
+                .setStyle(ButtonStyle.Success) // Botão Verde Estético Minimalista
         );
 
-        await interaction.reply({ content: '✅ Painel de Whitelist enviado com os botões atualizados!', ephemeral: true });
-        await interaction.channel.send({ embeds: [embed], components: [rowBotoes] });
+        try {
+            await interaction.channel.send({ embeds: [embedPrefeituraWL], components: [linhaBotao] });
+            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de White-List automática com botão ativo foi injetado com sucesso.', ephemeral: true });
+        } catch (error) {
+            console.error('Erro ao enviar painel de WL:', error);
+            return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed neste canal.', ephemeral: true });
+        }
     }
 };

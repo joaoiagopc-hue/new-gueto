@@ -1,4 +1,3 @@
-
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +18,6 @@ const client = new Client({
     ]
 });
 
-// Buscador Inteligente Adaptado para Mapear as Subpastas Corretas do seu Projeto
 function carregarModuloSeguro(caminhoRelativo) {
     const caminho = path.join(__dirname, caminhoRelativo);
     if (fs.existsSync(caminho)) {
@@ -41,7 +39,8 @@ client.once('ready', async () => {
         new SlashCommandBuilder().setName('top-avaliar').setDescription('Exibe o ranking de avaliação e média da Staff.'),
         new SlashCommandBuilder().setName('painel-armadilha').setDescription('Envia o painel de métricas do sistema Anti-Scam.'),
         new SlashCommandBuilder().setName('cria-embed').setDescription('🔒 Comando Staff: Abre o formulário para criar uma Embed personalizada em parágrafo.'),
-        new SlashCommandBuilder().setName('painel-id').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.')
+        new SlashCommandBuilder().setName('painel-id').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.'),
+        new SlashCommandBuilder().setName('painel-wl').setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de iniciar o teste de White-List.')
     ].map(command => command.toJSON());
 
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -55,11 +54,9 @@ client.once('ready', async () => {
     }
 });
 
-// 🚨 CENTRAL DE ESCUTA DO CHAT
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    // Escudo Anti-Raid e Anti-Troll (armadilha.js dentro de commands/rp/)
     try {
         const armadilhaModule = carregarModuloSeguro('commands/rp/armadilha.js');
         if (armadilhaModule && typeof armadilhaModule.verificarAmeacasArmadilha === 'function') {
@@ -69,12 +66,10 @@ client.on('messageCreate', async message => {
     } catch (e) { }
 });
 
-// 🎯 DISTRIBUIDOR CENTRAL DE INTERAÇÕES (BARRA, BOTÕES E MODALS)
 client.on('interactionCreate', async interaction => {
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
         
-        // Rotas dos Comandos Barra apontando para as pastas certas do print
         if (commandName === 'painel-ticket') {
             try { const m = carregarModuloSeguro('commands/rp/ticket.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
@@ -95,12 +90,14 @@ client.on('interactionCreate', async interaction => {
             try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
         }
+        // 🚨 NOVO FIX DE ROTA CIVIL: Mapeia o comando /painel-wl para ler a pasta correta!
+        if (commandName === 'painel-wl') {
+            try { const m = carregarModuloSeguro('commands/rp/wl.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
+            return;
+        }
     }
 
-    // 🚨 GATILHO COMPARTILHADO: Escuta cliques em botões e envios de Modals Formulários nas subpastas!
     if (interaction.isButton() || interaction.isModalSubmit()) {
-        
-        // 🎫 1. Roteia as interações do painel de Tickets (commands/admin/ticket_botoes.js)
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -110,7 +107,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 🪪 2. Roteia as interações do Passaporte e do Modal de Nick (commands/admin/passaporte_botoes.js)
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -120,7 +116,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 📝 3. NOVO INJETOR: Roteia o motor de exames da White-List Automática (commands/admin/wl_botoes.js)
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
