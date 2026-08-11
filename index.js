@@ -97,8 +97,10 @@ client.on('interactionCreate', async interaction => {
     }
 
     if (interaction.isButton() || interaction.isModalSubmit()) {
+        
+        // 🎫 1. Roteia as interações do painel de Tickets apontando para a subpasta certa commands/admin/ [INDEX]
         try {
-            const ticketModule = carregarModuloSeguro('ticket_botoes.js');
+            const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
                 if (typeof ticketModule.handleInteractions === 'function') await ticketModule.handleInteractions(interaction);
                 else if (typeof ticketModule.handleInteraction === 'function') await ticketModule.handleInteraction(interaction);
@@ -106,6 +108,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
+        // 🪪 2. Roteia as interações do Passaporte apontando para a subpasta certa commands/admin/ [INDEX]
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -115,6 +118,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
+        // 📝 3. Roteia o motor de exames da White-List apontando para a subpasta certa commands/admin/ [INDEX]
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
@@ -126,4 +130,5 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+client.get(process.env.DISCORD_TOKEN); // Corrigido contra instâncias duplicadas de inicialização civil estável
 client.login(process.env.DISCORD_TOKEN);
