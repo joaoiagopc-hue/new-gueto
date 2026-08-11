@@ -32,7 +32,7 @@ function carregarModuloSeguro(caminhoRelativo) {
 }
 
 client.once('ready', async () => {
-    console.log('🧱 [BOT HELP] Central online com comandos, passaporte, tickets e WL automática!');
+    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas!');
 
     const commands = [
         new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
@@ -90,7 +90,6 @@ client.on('interactionCreate', async interaction => {
             try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
         }
-        // 🚨 NOVO FIX DE ROTA CIVIL: Mapeia o comando /painel-wl para ler a pasta correta!
         if (commandName === 'painel-wl') {
             try { const m = carregarModuloSeguro('commands/rp/wl.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
@@ -99,7 +98,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton() || interaction.isModalSubmit()) {
         try {
-            const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
+            const ticketModule = carregarModuloSeguro('ticket_botoes.js');
             if (ticketModule) {
                 if (typeof ticketModule.handleInteractions === 'function') await ticketModule.handleInteractions(interaction);
                 else if (typeof ticketModule.handleInteraction === 'function') await ticketModule.handleInteraction(interaction);

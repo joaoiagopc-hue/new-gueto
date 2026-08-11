@@ -29,10 +29,11 @@ module.exports = {
                 `👇 *Clique no botão verde abaixo para dar início ao seu teste direto neste canal:*`
             )
             .setColor('#2f3136')
-            .setFooter({ text: 'Gueto RP EXAM Core v4 — Correção 100% Automatizada' })
+            .setFooter({ text: 'Gueto RP EXAM Core v4 — Correction 100% Automatizada' })
             .setTimestamp();
 
         // 🟢 BOTÃO CLEAN ADAPTADO: Totalmente sincronizado com o seu wl_botoes.js
+        const { ActionRowBuilder: ARB, ButtonBuilder: BB } = require('discord.js');
         const linhaBotao = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId('iniciar_wl_botao') // 🚨 ID IDÊNTICO ao que o seu wl_botoes.js escuta!
@@ -43,7 +44,7 @@ module.exports = {
         // Dispara a Embed pública com o botão no canal e responde o Staff em modo oculto
         try {
             await interaction.channel.send({ embeds: [embedPrefeituraWL], components: [linhaBotao] });
-            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de White-List automática com botão ativo foi injetado com sucesso.', ephemeral: true });
+            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de White-List foi injetado com sucesso.', ephemeral: true });
         } catch (error) {
             console.error('Erro ao enviar painel de WL:', error);
             return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed neste canal.', ephemeral: true });
