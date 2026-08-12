@@ -13,6 +13,15 @@ module.exports = {
         // 🚨 CONFIGURAÇÃO DO BANNER DO TOPO: Insira o link direto da sua imagem (.png ou .jpg)
         const URL_BANNER_TOPO_WL = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202417547083826/content.png?ex=6a7e2ed0&is=6a7cdd50&hm=21b547a1492d8ea08ae99a4338dfa89acad956532a795898b7e6978858846a3d&'; 
 
+        // 🎨 EMBED A: Carrega única e exclusivamente a foto mestre abrindo a caixa cinza
+        const embedFotoTopo = new EmbedBuilder()
+            .setColor('#2f3136');
+        
+        if (URL_BANNER_TOPO_WL && URL_BANNER_TOPO_WL.startsWith('http')) {
+            embedFotoTopo.setImage(URL_BANNER_TOPO_WL);
+        }
+
+        // 🎨 EMBED B: Carrega o bloco de texto e as diretrizes coladas logo embaixo na mesma caixa
         const embedPrefeituraWL = new EmbedBuilder()
             .setTitle('🧱 CENTRAL DE EXAMES • TESTE DE WHITE-LIST')
             .setDescription(
@@ -21,7 +30,7 @@ module.exports = {
                 `📊 **INFORMAÇÕES DO EXAME:**\n` +
                 `┃ 📝 **Quantidade:** 7 Perguntas de Múltipla Escolha (A, B, C, D).\n` +
                 `┃ 🎯 **Critério de Aprovação:** Você deve acertar pelo menos **4 de 7 perguntas** para passar!\n` +
-                `┃ 🏅 **Resultado Automático:** O bot faz a correção, altera seus cargos e te libera no mesmo segundo!\n\n` +
+                `┃ 🏅 **Resultado Automatático:** O bot faz a correção, altera seus cargos e te libera no mesmo segundo!\n\n` +
                 `👇 *Clique no botão verde abaixo para dar início ao seu teste direto neste canal:*`
             )
             .setColor('#2f3136')
@@ -35,19 +44,16 @@ module.exports = {
                 .setStyle(ButtonStyle.Success)
         );
 
-        // ⚙️ ADIADO O TOKEN: Garante a estabilidade da resposta oculta da Staff
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            // 🚀 PASSO A: Dispara primeiro o banner solto para ele se fixar no topo do chat!
-            if (URL_BANNER_TOPO_WL && URL_BANNER_TOPO_WL.startsWith('http')) {
-                await interaction.channel.send({ content: URL_BANNER_TOPO_WL });
-            }
-
-            // 🚀 PASSO B: Envia o bloco de texto e botões colado logo embaixo
-            await interaction.channel.send({ embeds: [embedPrefeituraWL], components: [linhaBotao] });
+            // 🚀 FUSÃO MESTRE: Envia as duas embeds juntas no mesmo array para o Discord colar o bloco cinza!
+            await interaction.channel.send({ 
+                embeds: [embedFotoTopo, embedPrefeituraWL], 
+                components: [linhaBotao] 
+            });
             
-            return interaction.editReply({ content: '✅ **Painel Enviado!** O painel de White-List com a foto posicionada no topo foi fixado com sucesso.' });
+            return interaction.editReply({ content: '✅ **Painel Enviado!** O painel de White-List com a foto fundida no topo do bloco foi fixado com sucesso.' });
         } catch (error) {
             console.error(error);
             return interaction.editReply({ content: '❌ Erro mecânico ao tentar injetar a Embed neste canal.' });
