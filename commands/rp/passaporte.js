@@ -16,16 +16,8 @@ module.exports = {
         // 🚨 CONFIGURAÇÃO DO BANNER DO TOPO: Insira o link direto da sua imagem (.png ou .jpg)
         const URL_BANNER_TOPO_PASSAPORTE = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202377378242600/content.png?ex=6a7e2ec6&is=6a7cdd46&hm=ceeb1c365cb3fbeebfd51c5736f085d8ddad82c2ebb1edb3d484d97fa333cdd3&'; 
 
-        // 🎨 EMBED A: Carrega única e exclusivamente a foto mestre abrindo a caixa cinza
-        const embedFotoTopo = new EmbedBuilder()
-            .setColor('#2f3136');
-        
-        if (URL_BANNER_TOPO_PASSAPORTE && URL_BANNER_TOPO_PASSAPORTE.startsWith('http')) {
-            embedFotoTopo.setImage(URL_BANNER_TOPO_PASSAPORTE);
-        }
-
-        // 🎨 EMBED B: Carrega o bloco de texto e as diretrizes coladas logo embaixo na mesma caixa
-        const embedPrefeituraID = new EmbedBuilder()
+        // 🎨 EMBED 1: O Bloco de cima que tranca a foto e o texto principal no mesmo quadrado cinza
+        const embedPrincipal = new EmbedBuilder()
             .setTitle('🧱 PREFEITURA CIVIL • EMISSÃO DE PASSAPORTES')
             .setDescription(
                 `Seja muito bem-vindo ao Setor de Registro de Identidades do **Gueto RP**!\n\n` +
@@ -37,6 +29,14 @@ module.exports = {
                 `┃ 📌 O cargo com ID será injetado no seu perfil para liberar o canal da White-List!\n\n` +
                 `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado. A duplicação ou fraude de documentos gera punições civis pela administração.*`
             )
+            .setColor('#2f3136'); // Cor invisível de fusão do Discord
+
+        if (URL_BANNER_TOPO_PASSAPORTE && URL_BANNER_TOPO_PASSAPORTE.startsWith('http')) {
+            embedPrincipal.setImage(URL_BANNER_TOPO_PASSAPORTE);
+        }
+
+        // 🎨 EMBED 2: O Bloco de baixo que se funde visualmente e fecha o rodapé com o timestamp
+        const embedRodape = new EmbedBuilder()
             .setColor('#2f3136')
             .setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' })
             .setTimestamp();
@@ -51,13 +51,13 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            // 🚀 FUSÃO MESTRE: Envia as duas embeds juntas no mesmo array para o Discord colar o bloco cinza!
+            // 🚀 DISPARO DA FUSÃO DE BLOCOS: Envia o Array para o Discord amassar e colar em um único quadrado!
             await interaction.channel.send({ 
-                embeds: [embedFotoTopo, embedPrefeituraID], 
+                embeds: [embedPrincipal, embedRodape], 
                 components: [linhaBotao] 
             });
             
-            return interaction.editReply({ content: '✅ **Painel Enviado!** O painel de passaportes com a foto fundida no topo do bloco foi fixado com sucesso.' });
+            return interaction.editReply({ content: '✅ **Painel Enviado!** Painel do Gueto RP unificado dentro do quadrado cinza com sucesso.' });
         } catch (error) {
             console.error('Erro ao enviar painel de passaportes:', error);
             return interaction.editReply({ content: '❌ Erro mecânico ao tentar injetar a Embed de passaportes neste canal.' });

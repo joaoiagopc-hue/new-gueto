@@ -13,16 +13,8 @@ module.exports = {
         // 🚨 CONFIGURAÇÃO DO BANNER DO TOPO: Insira o link direto da sua imagem (.png ou .jpg)
         const URL_BANNER_TOPO_WL = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202417547083826/content.png?ex=6a7e2ed0&is=6a7cdd50&hm=21b547a1492d8ea08ae99a4338dfa89acad956532a795898b7e6978858846a3d&'; 
 
-        // 🎨 EMBED A: Carrega única e exclusivamente a foto mestre abrindo a caixa cinza
-        const embedFotoTopo = new EmbedBuilder()
-            .setColor('#2f3136');
-        
-        if (URL_BANNER_TOPO_WL && URL_BANNER_TOPO_WL.startsWith('http')) {
-            embedFotoTopo.setImage(URL_BANNER_TOPO_WL);
-        }
-
-        // 🎨 EMBED B: Carrega o bloco de texto e as diretrizes coladas logo embaixo na mesma caixa
-        const embedPrefeituraWL = new EmbedBuilder()
+        // 🎨 EMBED 1: O Bloco de cima que tranca a foto e o texto principal no mesmo quadrado cinza
+        const embedPrincipal = new EmbedBuilder()
             .setTitle('🧱 CENTRAL DE EXAMES • TESTE DE WHITE-LIST')
             .setDescription(
                 `Para liberar o seu passaporte e iniciar a sua imersão em nossa cidade, você deve passar pelo nosso Exame de Diretrizes Civis Automatizado do **Gueto RP**.\n\n` +
@@ -30,9 +22,17 @@ module.exports = {
                 `📊 **INFORMAÇÕES DO EXAME:**\n` +
                 `┃ 📝 **Quantidade:** 7 Perguntas de Múltipla Escolha (A, B, C, D).\n` +
                 `┃ 🎯 **Critério de Aprovação:** Você deve acertar pelo menos **4 de 7 perguntas** para passar!\n` +
-                `┃ 🏅 **Resultado Automatático:** O bot faz a correção, altera seus cargos e te libera no mesmo segundo!\n\n` +
+                `┃ 🏅 **Resultado Automático:** O bot faz a correção, altera seus cargos e te libera no mesmo segundo!\n\n` +
                 `👇 *Clique no botão verde abaixo para dar início ao seu teste direto neste canal:*`
             )
+            .setColor('#2f3136');
+
+        if (URL_BANNER_TOPO_WL && URL_BANNER_TOPO_WL.startsWith('http')) {
+            embedPrincipal.setImage(URL_BANNER_TOPO_WL);
+        }
+
+        // 🎨 EMBED 2: O Bloco de baixo que se funde visualmente e fecha o rodapé com o timestamp
+        const embedRodape = new EmbedBuilder()
             .setColor('#2f3136')
             .setFooter({ text: 'Gueto RP EXAM Core v4 — Correção 100% Automatizada' })
             .setTimestamp();
@@ -47,13 +47,13 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            // 🚀 FUSÃO MESTRE: Envia as duas embeds juntas no mesmo array para o Discord colar o bloco cinza!
+            // 🚀 DISPARO DA FUSÃO DE BLOCOS: Envia o Array para o Discord amassar e colar em um único quadrado!
             await interaction.channel.send({ 
-                embeds: [embedFotoTopo, embedPrefeituraWL], 
+                embeds: [embedPrincipal, embedRodape], 
                 components: [linhaBotao] 
             });
             
-            return interaction.editReply({ content: '✅ **Painel Enviado!** O painel de White-List com a foto fundida no topo do bloco foi fixado com sucesso.' });
+            return interaction.editReply({ content: '✅ **Painel Enviado!** Painel da White-List unificado dentro do quadrado cinza com sucesso.' });
         } catch (error) {
             console.error(error);
             return interaction.editReply({ content: '❌ Erro mecânico ao tentar injetar a Embed neste canal.' });
