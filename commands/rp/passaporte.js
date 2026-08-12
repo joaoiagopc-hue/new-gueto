@@ -13,8 +13,8 @@ module.exports = {
             });
         }
 
-        // 🚨 CONFIGURAÇÃO DO BANNER DO TOPO: Insira aqui a URL real do banner do seu passaporte do Gueto RP!
-        const URL_BANNER_TOPO_PASSAPORTE = 'https://chatgpt.com/backend-api/estuary/content?id=file_00000000c7d4820e96eee62f3bcab2d1&ts=496268&p=fs&cid=1&sig=7af62fa9e763de0873f2b580664f074fd4d322522ac730e9c0fafec3da0a82ee&v=0'; 
+        // 🚨 CONFIGURAÇÃO DO BANNER DO TOPO: Pegue o link que termine obrigatoriamente com .png ou .jpg! [➔]
+        const URL_BANNER_TOPO_PASSAPORTE = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202377378242600/content.png?ex=6a7e2ec6&is=6a7cdd46&hm=ceeb1c365cb3fbeebfd51c5736f085d8ddad82c2ebb1edb3d484d97fa333cdd3&'; 
 
         // 🎨 MOLDAGEM DA EMBED OFICIAL CIVIL DA PREFEITURA DO GUETO RP
         const embedPrefeituraID = new EmbedBuilder()
@@ -29,10 +29,14 @@ module.exports = {
                 `┃ 📌 O cargo com ID será injetado no seu perfil para liberar o canal da White-List!\n\n` +
                 `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado. A duplicação ou fraude de documentos gera punições civis pela administração.*`
             )
-            .setColor('#2f3136')
-            .setImage(URL_BANNER_TOPO_PASSAPORTE) // 🖼️ Injetado no topo do painel principal!
-            .setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' })
-            .setTimestamp();
+            .setColor('#2f3136');
+
+        // Se o link for preenchido corretamente, injeta a imagem no topo do painel principal [➔]
+        if (URL_BANNER_TOPO_PASSAPORTE && URL_BANNER_TOPO_PASSAPORTE.startsWith('http')) {
+            embedPrefeituraID.setImage(URL_BANNER_TOPO_PASSAPORTE);
+        }
+
+        embedPrefeituraID.setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' }).setTimestamp();
 
         const linhaBotao = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
@@ -43,7 +47,7 @@ module.exports = {
 
         try {
             await interaction.channel.send({ embeds: [embedPrefeituraID], components: [linhaBotao] });
-            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de passaportes do Gueto RP com a foto no topo foi fixado com sucesso.', ephemeral: true });
+            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de passaportes com a foto no topo foi fixado com sucesso.', ephemeral: true });
         } catch (error) {
             console.error('Erro ao enviar painel de passaportes:', error);
             return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed de passaportes neste canal.', ephemeral: true });
