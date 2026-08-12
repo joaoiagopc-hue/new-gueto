@@ -18,7 +18,7 @@ const client = new Client({
     ]
 });
 
-// 🚨 NOVO FIX CORE CIVIL: Garante que a memória de White-list nasça ativa junto com o bot!
+// Garante que a memória RAM de White-list nasça ativa junto com o bot [INDEX]
 client.wlSessoes = new Map();
 
 function carregarModuloSeguro(caminhoRelativo) {
@@ -101,6 +101,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton() || interaction.isModalSubmit()) {
         
+        // 🎫 1. Roteia as interações do painel de Tickets apontando para a subpasta certa commands/admin/ [INDEX]
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -110,6 +111,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
+        // 🪪 2. Roteia as interações do Passaporte apontando para a subpasta certa commands/admin/ [INDEX]
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -119,6 +121,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
+        // 📝 3. Roteia o motor de exames da White-List apontando para a subpasta certa commands/admin/ [INDEX]
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {

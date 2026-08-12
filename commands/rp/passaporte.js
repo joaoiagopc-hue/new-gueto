@@ -15,21 +15,21 @@ module.exports = {
             });
         }
 
-        // 🎨 MOLDAGEM DA EMBED OFICIAL CIVIL DA PREFEITURA DO GUETO RP
+        // 🎨 MOLDAGEM DA EMBED OFICIAL CIVIL DA PREFEITURA
         const embedPrefeituraID = new EmbedBuilder()
             .setTitle('🧱 PREFEITURA CIVIL • EMISSÃO DE PASSAPORTES')
             .setDescription(
-                `Seja muito bem-vindo ao Setor de Registro de Identidades do **Gueto RP**!\n\n` +
+                `Seja muito bem-vindo ao Setor de Registro de Identidades!\n\n` +
                 `Para iniciar a sua jornada em nossa cidade, comprar suas propriedades, veículos e se registrar nos sistemas legais ou facções, você precisa de um documento civil ativo.\n\n` +
                 `⚙️ **INSTRUÇÕES DE SOLICITAÇÃO:**\n` +
                 `┃ 📌 Clique no botão **\`🪪 Solicitar ID\`** localizado logo abaixo.\n` +
                 `┃ 📌 O sistema vai abrir um formulário na sua tela perguntando seu Nick do Roblox.\n` +
                 `┃ 📌 Seu nome no Discord será alterado automaticamente para o formato: \`ID | Nick\`.\n` +
-                `┃ 📌 O cargo de morador ativo será injetado no seu perfil para liberar a White-List!\n\n` +
+                `┃ 📌 O cargo com ID será injetado no seu perfil para liberar o canal da White-List!\n\n` +
                 `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado. A duplicação ou fraude de documentos gera punições civis pela administração.*`
             )
             .setColor('#2f3136')
-            .setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' })
+            .setFooter({ text: 'Sistema Automatizado de Identidade Civil — PAFO' })
             .setTimestamp();
 
         // 🟢 BOTÃO CLEAN ADAPTADO: Sincronizado perfeitamente com o seu passaporte_botoes.js
@@ -40,7 +40,6 @@ module.exports = {
                 .setStyle(ButtonStyle.Success) // Botão Verde Clean Minimalista
         );
 
-        // Dispara a Embed com o botão no canal e responde o Staff em modo oculto
         try {
             await interaction.channel.send({ embeds: [embedPrefeituraID], components: [linhaBotao] });
             return interaction.reply({ content: '✅ **Painel Enviado!** O painel de emissão de passaportes com o botão ativo foi injetado na sala com sucesso.', ephemeral: true });
