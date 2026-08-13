@@ -70,9 +70,12 @@ client.on('messageCreate', async message => {
 });
 
 client.on('interactionCreate', async interaction => {
+    // 🚨 CONTROLADOR COMPLETO DE COMANDOS BARRA (/)
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
         
+        console.log(`📡 Comando executado detectado no distribuidor: /${commandName}`);
+
         if (commandName === 'painel-ticket') {
             try { const m = carregarModuloSeguro('commands/rp/ticket.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
@@ -89,19 +92,39 @@ client.on('interactionCreate', async interaction => {
             try { const m = carregarModuloSeguro('commands/admin/cria_embed.js'); if (m) { if(m.executeSlashCriaEmbed) await m.executeSlashCriaEmbed(interaction); else await m.execute(interaction); } } catch (e) { console.error(e); }
             return;
         }
+        
+        // 🚨 CAMINHO FIXO DO PASSAPORTE: Garante que execute() seja chamado no arquivo correto da pasta rp
         if (commandName === 'painel-id') {
-            try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
+            try { 
+                const m = carregarModuloSeguro('commands/rp/passaporte.js'); 
+                if (m && typeof m.execute === 'function') {
+                    await m.execute(interaction); 
+                } else {
+                    console.log('❌ Erro: Arquivo commands/rp/passaporte.js não exporta a função execute.');
+                    await interaction.reply({ content: '❌ Erro de inicialização interna do script de passaportes.', ephemeral: true }).catch(() => null);
+                }
+            } catch (e) { console.error(e); }
             return;
         }
+        
+        // 🚨 CAMINHO FIXO DA WHITE-LIST: Garante que execute() seja chamado no arquivo correto da pasta rp
         if (commandName === 'painel-wl') {
-            try { const m = carregarModuloSeguro('commands/rp/wl.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
+            try { 
+                const m = carregarModuloSeguro('commands/rp/wl.js'); 
+                if (m && typeof m.execute === 'function') {
+                    await m.execute(interaction); 
+                } else {
+                    console.log('❌ Erro: Arquivo commands/rp/wl.js não exporta a função execute.');
+                    await interaction.reply({ content: '❌ Erro de inicialização interna do script de White-List.', ephemeral: true }).catch(() => null);
+                }
+            } catch (e) { console.error(e); }
             return;
         }
     }
 
+    // 🚨 GATILHO COMPARTILHADO DE CLIQUES EM BOTÕES E FORMULÁRIOS
     if (interaction.isButton() || interaction.isModalSubmit()) {
         
-        // 🎫 1. Roteia as interações do painel de Tickets apontando para a pasta correta commands/admin/
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -111,7 +134,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 🪪 2. Roteia as interações do Passaporte apontando para a pasta correta commands/admin/
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -121,7 +143,6 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 📝 3. Roteia o motor de exames da White-List apontando para a pasta correta commands/admin/
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
