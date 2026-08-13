@@ -18,7 +18,7 @@ const client = new Client({
     ]
 });
 
-// 🚨 MEMÓRIA CORE: Inicializa o mapa de sessões da Whitelist no nascimento do bot
+// Memória Core da White-List
 client.wlSessoes = new Map();
 
 function carregarModuloSeguro(caminhoRelativo) {
@@ -35,7 +35,7 @@ function carregarModuloSeguro(caminhoRelativo) {
 }
 
 client.once('ready', async () => {
-    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas e sem timeouts!');
+    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas!');
 
     const commands = [
         new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
@@ -49,11 +49,23 @@ client.once('ready', async () => {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
     try {
-        console.log('🔄 Sincronizando comandos barra com o Discord...');
-        await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-        console.log('✅ Todos os comandos barra (/) foram injetados com sucesso!');
+        console.log('🔄 Sincronizando e forçando comandos instantâneos no servidor...');
+        
+        // 🚨 ENGENHARIA SUPREMA ANTI-CACHE: Registra os comandos direto no seu servidor local para atualizar na mesma hora!
+        // Ele vai tentar ler o GUILD_ID do seu arquivo .env, se não achar, envia global de segurança.
+        if (process.env.GUILD_ID) {
+            await rest.put(
+                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+                { body: commands }
+            );
+            console.log('⚡ [SUCESSO LOCAL] Comandos injetados e atualizados na hora no servidor principal!');
+        } else {
+            // Se você não tiver o GUILD_ID no .env, o bot usa a rota global padrão limpa
+            await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+            console.log('✅ [SUCESSO GLOBAL] Comandos barra sincronizados com o Discord!');
+        }
     } catch (error) {
-        console.error('❌ Erro ao registrar Slash Commands:', error);
+        console.error('❌ Erro crítico ao injetar os comandos barra:', error);
     }
 });
 
@@ -70,11 +82,10 @@ client.on('messageCreate', async message => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // 🚨 CONTROLADOR COMPLETO DE COMANDOS BARRA (/)
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
         
-        console.log(`📡 Comando executado detectado no distribuidor: /${commandName}`);
+        console.log(`📡 Interação detectada: /${commandName}`);
 
         if (commandName === 'painel-ticket') {
             try { const m = carregarModuloSeguro('commands/rp/ticket.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
@@ -92,39 +103,17 @@ client.on('interactionCreate', async interaction => {
             try { const m = carregarModuloSeguro('commands/admin/cria_embed.js'); if (m) { if(m.executeSlashCriaEmbed) await m.executeSlashCriaEmbed(interaction); else await m.execute(interaction); } } catch (e) { console.error(e); }
             return;
         }
-        
-        // 🚨 CAMINHO FIXO DO PASSAPORTE: Garante que execute() seja chamado no arquivo correto da pasta rp
         if (commandName === 'painel-id') {
-            try { 
-                const m = carregarModuloSeguro('commands/rp/passaporte.js'); 
-                if (m && typeof m.execute === 'function') {
-                    await m.execute(interaction); 
-                } else {
-                    console.log('❌ Erro: Arquivo commands/rp/passaporte.js não exporta a função execute.');
-                    await interaction.reply({ content: '❌ Erro de inicialização interna do script de passaportes.', ephemeral: true }).catch(() => null);
-                }
-            } catch (e) { console.error(e); }
+            try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
         }
-        
-        // 🚨 CAMINHO FIXO DA WHITE-LIST: Garante que execute() seja chamado no arquivo correto da pasta rp
         if (commandName === 'painel-wl') {
-            try { 
-                const m = carregarModuloSeguro('commands/rp/wl.js'); 
-                if (m && typeof m.execute === 'function') {
-                    await m.execute(interaction); 
-                } else {
-                    console.log('❌ Erro: Arquivo commands/rp/wl.js não exporta a função execute.');
-                    await interaction.reply({ content: '❌ Erro de inicialização interna do script de White-List.', ephemeral: true }).catch(() => null);
-                }
-            } catch (e) { console.error(e); }
+            try { const m = carregarModuloSeguro('commands/rp/wl.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
             return;
         }
     }
 
-    // 🚨 GATILHO COMPARTILHADO DE CLIQUES EM BOTÕES E FORMULÁRIOS
     if (interaction.isButton() || interaction.isModalSubmit()) {
-        
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
