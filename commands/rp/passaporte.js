@@ -6,6 +6,7 @@ module.exports = {
         .setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.'),
 
     async execute(interaction) {
+        // Trava de segurança administrativa
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
             return interaction.reply({ 
                 content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel de registros civis.', 
@@ -14,7 +15,7 @@ module.exports = {
         }
 
         // 🚨 CONFIGURAÇÃO DO BANNER: Insira aqui a URL direta do seu banner (.png ou .jpg) para aparecer embaixo do texto!
-        const URL_BANNER_PASSAPORTE = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202377378242600/content.png?ex=6a7e2ec6&is=6a7cdd46&hm=ceeb1c365cb3fbeebfd51c5736f085d8ddad82c2ebb1edb3d484d97fa333cdd3&'; 
+        const URL_BANNER_PASSAPORTE = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202377378242600/content.png?ex=6a7f8046&is=6a7e2ec6&hm=17ceecb55f2c901f238d8bb07c4375eb78492e4ff84527f9b274c644e86deb41&'; 
 
         // 🎨 MOLDAGEM DA EMBED CLASSICA DA PREFEITURA DO GUETO RP
         const embedPrefeituraID = new EmbedBuilder()
@@ -31,7 +32,6 @@ module.exports = {
             )
             .setColor('#2f3136');
 
-        // Se o link for preenchido corretamente, renderiza a foto embaixo do texto nativamente
         if (URL_BANNER_PASSAPORTE && URL_BANNER_PASSAPORTE.startsWith('http')) {
             embedPrefeituraID.setImage(URL_BANNER_PASSAPORTE);
         }
@@ -46,8 +46,11 @@ module.exports = {
         );
 
         try {
+            // 🚀 PASSO SEGURO V14: Envia primeiro o painel público e responde o comando barra na sequência imediata!
             await interaction.channel.send({ embeds: [embedPrefeituraID], components: [linhaBotao] });
-            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de passaportes clássico do Gueto RP com a foto embaixo do texto foi fixado com sucesso.', ephemeral: true });
+            
+            // Resposta nativa síncrona oculta super estável para travar o timeout na mesma hora!
+            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de passaportes clássico do Gueto RP foi fixado com sucesso no canal.', ephemeral: true });
         } catch (error) {
             console.error('Erro ao enviar painel de passaportes:', error);
             return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed de passaportes neste canal.', ephemeral: true });
