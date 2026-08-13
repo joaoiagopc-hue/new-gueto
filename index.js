@@ -49,17 +49,13 @@ client.once('ready', async () => {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
     try {
-        // 🚨 CRAVADO NO CÓDIGO: ID oficial do seu servidor para carregar na hora!
-        const GUETO_SERVER_ID = '1503073223477035260'; 
-
+        const GUETO_SERVER_ID = '1515730228494864394'; 
         console.log(`🔄 Sincronizando e forçando comandos locais no servidor ID: ${GUETO_SERVER_ID}...`);
         
-        // Injeta os comandos barra direto na raiz do seu servidor limpando o cache instantaneamente
         await rest.put(
             Routes.applicationGuildCommands(process.env.CLIENT_ID, GUETO_SERVER_ID),
             { body: commands }
         );
-        
         console.log('⚡ [SUCESSO LOCAL] Todos os comandos barra foram injetados e atualizados na hora!');
     } catch (error) {
         console.error('❌ Erro crítico ao injetar os comandos barra:', error);
@@ -79,9 +75,7 @@ client.on('messageCreate', async message => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     // 📌 1. DISTRIBUIDOR DOS COMANDOS DE BARRA (/)
-    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
         console.log(`📡 [SLASH] Executando: /${commandName}`);
@@ -116,14 +110,11 @@ client.on('interactionCreate', async interaction => {
         return;
     }
 
-    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     // 📌 2. DISTRIBUIDOR DE COMPONENTES INTERNOS (BOTÕES E FORMULÁRIOS)
-    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     if (interaction.isButton() || interaction.isModalSubmit()) {
         const customId = interaction.customId || '';
         console.log(`🎯 [INTERAÇÃO] Componente acionado: ${customId}`);
 
-        // 🎫 Rota Unificada do Painel de Tickets
         if (customId.includes('ticket') || customId.includes('atendente') || customId.startsWith('nota_')) {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -133,7 +124,6 @@ client.on('interactionCreate', async interaction => {
             }
         }
 
-        // 🪪 Rota Unificada do Passaporte / Solicitar ID
         if (customId.includes('id') || customId.includes('passaporte') || customId.includes('roblox')) {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -143,7 +133,6 @@ client.on('interactionCreate', async interaction => {
             }
         }
 
-        // 📝 Rota Unificada do Exame de White-List
         if (customId.includes('wl') || customId.startsWith('wl_resp_')) {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
@@ -155,4 +144,5 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// 🚨 FIX ABSOLUTO: Linha fantasma "client.get" removida para extinguir o crash do deploy!
 client.login(process.env.DISCORD_TOKEN);

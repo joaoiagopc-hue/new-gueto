@@ -6,18 +6,15 @@ module.exports = {
         .setDescription('🔒 Comando Staff: Envia o painel oficial com o botão de solicitar ID/Passaporte.'),
 
     async execute(interaction) {
-        // Trava de segurança administrativa
+        // 🚨 ANTI-TIMEOUT CONTRA ERRO VISUAL: Responde ao Discord em menos de 1 segundo!
+        await interaction.deferReply({ ephemeral: true }).catch(() => null);
+
         if (!interaction.member.permissions.has(PermissionFlagsBits.ManageChannels)) {
-            return interaction.reply({ 
-                content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel de registros civis.', 
-                ephemeral: true 
-            });
+            return interaction.editReply({ content: '❌ **Acesso Negado!** Você não possui permissões administrativas para fixar o painel.' });
         }
 
-        // 🚨 CONFIGURAÇÃO DO BANNER: Insira aqui a URL direta do seu banner (.png ou .jpg) para aparecer embaixo do texto!
         const URL_BANNER_PASSAPORTE = 'https://cdn.discordapp.com/attachments/1519870266216288270/1537202377378242600/content.png?ex=6a7f8046&is=6a7e2ec6&hm=17ceecb55f2c901f238d8bb07c4375eb78492e4ff84527f9b274c644e86deb41&'; 
 
-        // 🎨 MOLDAGEM DA EMBED CLASSICA DA PREFEITURA DO GUETO RP
         const embedPrefeituraID = new EmbedBuilder()
             .setTitle('🧱 PREFEITURA CIVIL • EMISSÃO DE PASSAPORTES')
             .setDescription(
@@ -28,7 +25,7 @@ module.exports = {
                 `┃ 📌 O sistema vai abrir um formulário na sua tela perguntando seu Nick do Roblox.\n` +
                 `┃ 📌 Seu nome no Discord será alterado automaticamente para o formato: \`ID | Nick\`.\n` +
                 `┃ 📌 O cargo com ID será injetado no seu perfil para liberar o canal da White-List!\n\n` +
-                `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado. A duplicação ou fraude de documentos gera punições civis pela administração.*`
+                `⚠️ *Evite clicar no botão mais de uma vez se já possuir um número cadastrado.*`
             )
             .setColor('#2f3136');
 
@@ -36,24 +33,17 @@ module.exports = {
             embedPrefeituraID.setImage(URL_BANNER_PASSAPORTE);
         }
 
-        embedPrefeituraID.setFooter({ text: 'Gueto RP — Sistema Automatizado de Identidade Civil' }).setTimestamp();
+        embedPrefeituraID.setFooter({ text: 'Gueto RP — Identity System' }).setTimestamp();
 
         const linhaBotao = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('solicitar_id_botao')
-                .setLabel('🪪 Solicitar ID')
-                .setStyle(ButtonStyle.Success)
+            new ButtonBuilder().setCustomId('solicitar_id_botao').setLabel('🪪 Solicitar ID').setStyle(ButtonStyle.Success)
         );
 
         try {
-            // 🚀 PASSO SEGURO V14: Envia primeiro o painel público e responde o comando barra na sequência imediata!
             await interaction.channel.send({ embeds: [embedPrefeituraID], components: [linhaBotao] });
-            
-            // Resposta nativa síncrona oculta super estável para travar o timeout na mesma hora!
-            return interaction.reply({ content: '✅ **Painel Enviado!** O painel de passaportes clássico do Gueto RP foi fixado com sucesso no canal.', ephemeral: true });
+            return interaction.editReply({ content: '✅ **Painel Enviado!** Painel fixado com sucesso livre de timeouts!' });
         } catch (error) {
-            console.error('Erro ao enviar painel de passaportes:', error);
-            return interaction.reply({ content: '❌ Erro mecânico ao tentar injetar a Embed de passaportes neste canal.', ephemeral: true });
+            return interaction.editReply({ content: '❌ Erro mecânico ao injetar a Embed.' });
         }
     }
 };
