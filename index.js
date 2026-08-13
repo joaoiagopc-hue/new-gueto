@@ -18,7 +18,7 @@ const client = new Client({
     ]
 });
 
-// Memória Core da White-List
+// 🚨 MEMÓRIA CORE: Inicializa o mapa de sessoes da Whitelist no nascimento do bot
 client.wlSessoes = new Map();
 
 function carregarModuloSeguro(caminhoRelativo) {
@@ -35,7 +35,7 @@ function carregarModuloSeguro(caminhoRelativo) {
 }
 
 client.once('ready', async () => {
-    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas!');
+    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas e sem timeouts!');
 
     const commands = [
         new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
@@ -49,21 +49,18 @@ client.once('ready', async () => {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
     try {
-        console.log('🔄 Sincronizando e forçando comandos instantâneos no servidor...');
+        // 🚨 CRAVADO NO CÓDIGO: ID oficial do seu servidor para carregar na hora!
+        const GUETO_SERVER_ID = '1503073223477035260'; 
+
+        console.log(`🔄 Sincronizando e forçando comandos locais no servidor ID: ${GUETO_SERVER_ID}...`);
         
-        // 🚨 ENGENHARIA SUPREMA ANTI-CACHE: Registra os comandos direto no seu servidor local para atualizar na mesma hora!
-        // Ele vai tentar ler o GUILD_ID do seu arquivo .env, se não achar, envia global de segurança.
-        if (process.env.GUILD_ID) {
-            await rest.put(
-                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-                { body: commands }
-            );
-            console.log('⚡ [SUCESSO LOCAL] Comandos injetados e atualizados na hora no servidor principal!');
-        } else {
-            // Se você não tiver o GUILD_ID no .env, o bot usa a rota global padrão limpa
-            await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-            console.log('✅ [SUCESSO GLOBAL] Comandos barra sincronizados com o Discord!');
-        }
+        // Injeta os comandos barra direto na raiz do seu servidor limpando o cache instantaneamente
+        await rest.put(
+            Routes.applicationGuildCommands(process.env.CLIENT_ID, GUETO_SERVER_ID),
+            { body: commands }
+        );
+        
+        console.log('⚡ [SUCESSO LOCAL] Todos os comandos barra foram injetados e atualizados na hora!');
     } catch (error) {
         console.error('❌ Erro crítico ao injetar os comandos barra:', error);
     }
@@ -82,64 +79,79 @@ client.on('messageCreate', async message => {
 });
 
 client.on('interactionCreate', async interaction => {
+    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+    // 📌 1. DISTRIBUIDOR DOS COMANDOS DE BARRA (/)
+    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     if (interaction.isChatInputCommand()) {
         const { commandName } = interaction;
-        
-        console.log(`📡 Interação detectada: /${commandName}`);
+        console.log(`📡 [SLASH] Executando: /${commandName}`);
 
         if (commandName === 'painel-ticket') {
-            try { const m = carregarModuloSeguro('commands/rp/ticket.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/rp/ticket.js');
+            if (m && typeof m.execute === 'function') return await m.execute(interaction);
         }
         if (commandName === 'top-avaliar') {
-            try { const m = carregarModuloSeguro('commands/rp/ticket.js'); if (m) await m.executeRanking(interaction); } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/rp/ticket.js');
+            if (m && typeof m.executeRanking === 'function') return await m.executeRanking(interaction);
         }
         if (commandName === 'painel-armadilha') {
-            try { const m = carregarModuloSeguro('commands/rp/armadilha.js'); if (m) await m.executePrefixArmadilha(interaction); } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/rp/armadilha.js');
+            if (m && typeof m.executePrefixArmadilha === 'function') return await m.executePrefixArmadilha(interaction);
         }
         if (commandName === 'cria-embed') {
-            try { const m = carregarModuloSeguro('commands/admin/cria_embed.js'); if (m) { if(m.executeSlashCriaEmbed) await m.executeSlashCriaEmbed(interaction); else await m.execute(interaction); } } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/admin/cria_embed.js');
+            if (m) {
+                if (typeof m.executeSlashCriaEmbed === 'function') return await m.executeSlashCriaEmbed(interaction);
+                if (typeof m.execute === 'function') return await m.execute(interaction);
+            }
         }
         if (commandName === 'painel-id') {
-            try { const m = carregarModuloSeguro('commands/rp/passaporte.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/rp/passaporte.js');
+            if (m && typeof m.execute === 'function') return await m.execute(interaction);
         }
         if (commandName === 'painel-wl') {
-            try { const m = carregarModuloSeguro('commands/rp/wl.js'); if (m) await m.execute(interaction); } catch (e) { console.error(e); }
-            return;
+            const m = carregarModuloSeguro('commands/rp/wl.js');
+            if (m && typeof m.execute === 'function') return await m.execute(interaction);
         }
+        return;
     }
 
+    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+    // 📌 2. DISTRIBUIDOR DE COMPONENTES INTERNOS (BOTÕES E FORMULÁRIOS)
+    // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
     if (interaction.isButton() || interaction.isModalSubmit()) {
-        try {
+        const customId = interaction.customId || '';
+        console.log(`🎯 [INTERAÇÃO] Componente acionado: ${customId}`);
+
+        // 🎫 Rota Unificada do Painel de Tickets
+        if (customId.includes('ticket') || customId.includes('atendente') || customId.startsWith('nota_')) {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
-                if (typeof ticketModule.handleInteractions === 'function') await ticketModule.handleInteractions(interaction);
-                else if (typeof ticketModule.handleInteraction === 'function') await ticketModule.handleInteraction(interaction);
-                else if (typeof ticketModule.processarTudo === 'function') await ticketModule.processarTudo(interaction);
+                if (typeof ticketModule.processarTudo === 'function') return await ticketModule.processarTudo(interaction);
+                if (typeof ticketModule.handleInteraction === 'function') return await ticketModule.handleInteraction(interaction);
+                if (typeof ticketModule.handleInteractions === 'function') return await ticketModule.handleInteractions(interaction);
             }
-        } catch (e) { console.error(e); }
+        }
 
-        try {
+        // 🪪 Rota Unificada do Passaporte / Solicitar ID
+        if (customId.includes('id') || customId.includes('passaporte') || customId.includes('roblox')) {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
-                if (typeof passaporteModule.handleInteractions === 'function') await passaporteModule.handleInteractions(interaction);
-                else if (typeof passaporteModule.handleInteraction === 'function') await passaporteModule.handleInteraction(interaction);
-                else if (typeof passaporteModule.processarFluxoId === 'function') await passaporteModule.processarFluxoId(interaction);
+                if (typeof passaporteModule.processarFluxoId === 'function') return await passaporteModule.processarFluxoId(interaction);
+                if (typeof passaporteModule.handleInteraction === 'function') return await passaporteModule.handleInteraction(interaction);
+                if (typeof passaporteModule.handleInteractions === 'function') return await passaporteModule.handleInteractions(interaction);
             }
-        } catch (e) { console.error(e); }
+        }
 
-        try {
+        // 📝 Rota Unificada do Exame de White-List
+        if (customId.includes('wl') || customId.startsWith('wl_resp_')) {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
-                if (typeof wlModule.handleInteractions === 'function') await wlModule.handleInteractions(interaction);
-                else if (typeof wlModule.handleInteraction === 'function') await wlModule.handleInteraction(interaction);
-                else if (typeof wlModule.processarWLAUTOMATICA === 'function') await wlModule.processarWLAUTOMATICA(interaction);
+                if (typeof wlModule.processarWLAUTOMATICA === 'function') return await wlModule.processarWLAUTOMATICA(interaction);
+                if (typeof wlModule.handleInteraction === 'function') return await wlModule.handleInteraction(interaction);
+                if (typeof wlModule.handleInteractions === 'function') return await wlModule.handleInteractions(interaction);
             }
-        } catch (e) { console.error(e); }
+        }
     }
 });
 
