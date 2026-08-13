@@ -18,7 +18,7 @@ const client = new Client({
     ]
 });
 
-// Garante que a memória RAM de White-list nasça ativa junto com o bot [INDEX]
+// 🚨 MEMÓRIA CORE: Inicializa o mapa de sessões da Whitelist no nascimento do bot
 client.wlSessoes = new Map();
 
 function carregarModuloSeguro(caminhoRelativo) {
@@ -35,7 +35,7 @@ function carregarModuloSeguro(caminhoRelativo) {
 }
 
 client.once('ready', async () => {
-    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas!');
+    console.log('🧱 [BOT HELP] Central online operando rotas de subpastas completas e sem timeouts!');
 
     const commands = [
         new SlashCommandBuilder().setName('painel-ticket').setDescription('Envia o painel esmero público de suporte da cidade.'),
@@ -101,7 +101,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isButton() || interaction.isModalSubmit()) {
         
-        // 🎫 1. Roteia as interações do painel de Tickets apontando para a subpasta certa commands/admin/ [INDEX]
+        // 🎫 1. Roteia as interações do painel de Tickets apontando para a pasta correta commands/admin/
         try {
             const ticketModule = carregarModuloSeguro('commands/admin/ticket_botoes.js');
             if (ticketModule) {
@@ -111,7 +111,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 🪪 2. Roteia as interações do Passaporte apontando para a subpasta certa commands/admin/ [INDEX]
+        // 🪪 2. Roteia as interações do Passaporte apontando para a pasta correta commands/admin/
         try {
             const passaporteModule = carregarModuloSeguro('commands/admin/passaporte_botoes.js');
             if (passaporteModule) {
@@ -121,7 +121,7 @@ client.on('interactionCreate', async interaction => {
             }
         } catch (e) { console.error(e); }
 
-        // 📝 3. Roteia o motor de exames da White-List apontando para a subpasta certa commands/admin/ [INDEX]
+        // 📝 3. Roteia o motor de exames da White-List apontando para a pasta correta commands/admin/
         try {
             const wlModule = carregarModuloSeguro('commands/admin/wl_botoes.js');
             if (wlModule) {
